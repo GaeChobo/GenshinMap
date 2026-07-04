@@ -145,6 +145,7 @@ window.Cloud = (function () {
     els.loginSubmit = document.getElementById("loginSubmit");
     els.signupBtn = document.getElementById("signupBtn");
     els.googleBtn = document.getElementById("googleBtn");
+    els.kakaoBtn = document.getElementById("kakaoBtn");
     els.magicBtn = document.getElementById("magicBtn");
     els.msg = document.getElementById("loginMsg");
 
@@ -175,6 +176,7 @@ window.Cloud = (function () {
     els.signupBtn.addEventListener("click", () => { if (needEmail()) signUp(email(), pw()); });
     els.magicBtn.addEventListener("click", () => { if (needEmail()) sendMagicLink(email()); });
     els.googleBtn.addEventListener("click", () => signInOAuth("google"));
+    if (els.kakaoBtn) els.kakaoBtn.addEventListener("click", () => signInOAuth("kakao"));
     els.loginPassword.addEventListener("keydown", (e) => { if (e.key === "Enter") els.loginSubmit.click(); });
     els.loginEmail.addEventListener("keydown", (e) => { if (e.key === "Enter") els.loginPassword.focus(); });
     els.logoutBtn.addEventListener("click", logout);
