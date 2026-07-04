@@ -967,3 +967,5 @@ label { cursor: pointer; }
   border: 1.5px solid var(--panel-solid);
   box-shadow: var(--marker-shadow);
 }
+.mk-cluster.is-complete .mk-badge { filter: grayscale(.6); opacity: .5; }
+.mk-cluster.is-complete .cluster-count { background: var(--accent); }

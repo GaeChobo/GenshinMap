@@ -229,16 +229,16 @@ function leafIcon(cat) {
   }
   return iconCache[key];
 }
-// 클러스터(가까운 같은 카테고리 마커 묶음) 아이콘 — 카테고리 아이콘 + 개수 배지
-function clusterIcon(cat, count) {
+// 클러스터(가까운 같은 카테고리 마커 묶음) 아이콘 — 카테고리 아이콘 + 배지(수집/전체 또는 개수)
+function clusterIcon(cat, label, complete) {
   const c = catDef(state.currentMapId, cat);
   const inner = c.icon
     ? '<img src="' + c.icon + '" alt="" loading="lazy">'
     : '<span class="mk-dot" style="background:' + c.color + '"></span>';
   return L.divIcon({
-    className: "mk mk-cluster",
+    className: "mk mk-cluster" + (complete ? " is-complete" : ""),
     html: '<div class="mk-badge" style="border-color:' + c.color + '">' + inner + "</div>" +
-      '<span class="cluster-count">' + count + "</span>",
+      '<span class="cluster-count">' + label + "</span>",
     iconSize: [34, 34], iconAnchor: [17, 17], popupAnchor: [0, -18],
   });
 }
@@ -291,18 +291,20 @@ function renderMarkers() {
   const zoom = state.map.getZoom();
   const b = state.map.getBounds().pad(0.25); // 뷰포트 컬링: 보이는 것만 처리
 
-  // 보이는 마커를 화면 격자(카테고리별)로 묶기
+  // 보이는 마커를 화면 격자(카테고리별)로 묶기 (수집/전체 계산 위해 완료 마커도 그룹에 포함)
+  const hidden = hiddenSet(state.currentMapId);
   const cells = new Map();
   let count = 0;
   for (const m of markersFor(state.currentMapId)) {
-    if (!markerVisible(m)) continue;
+    if (hidden.has(m.cat)) continue;               // 카테고리 필터만(완료는 그룹 계산에 포함)
     if (!b.contains([m.lat, m.lng])) continue;
     if (++count > CLUSTER_CAP) break;
     const pt = state.map.project([m.lat, m.lng], zoom);
     const key = m.cat + ":" + Math.floor(pt.x / CLUSTER_CELL) + ":" + Math.floor(pt.y / CLUSTER_CELL);
     let cell = cells.get(key);
-    if (!cell) { cell = { cat: m.cat, items: [], sx: 0, sy: 0 }; cells.set(key, cell); }
+    if (!cell) { cell = { cat: m.cat, items: [], sx: 0, sy: 0, done: 0 }; cells.set(key, cell); }
     cell.items.push(m); cell.sx += m.lng; cell.sy += m.lat;
+    if (state.done[m.id]) cell.done++;
   }
 
   const hint = document.getElementById("zoomHint");
@@ -310,10 +312,21 @@ function renderMarkers() {
   if (hint) hint.classList.add("hidden");
 
   for (const cell of cells.values()) {
-    if (cell.items.length === 1) { addIndividual(cell.items[0]); continue; }
-    // 클러스터: 중심에 개수 배지, 클릭하면 확대(디클러스터)
-    const lat = cell.sy / cell.items.length, lng = cell.sx / cell.items.length;
-    const cm = L.marker([lat, lng], { icon: clusterIcon(cell.cat, cell.items.length), keyboard: false });
+    const total = cell.items.length;
+    const collectible = !isRenewable(state.currentMapId, cell.cat);
+    if (total === 1) {
+      const m = cell.items[0];
+      if (state.hideCompleted && collectible && state.done[m.id]) continue; // 완료 개별은 숨김
+      addIndividual(m);
+      continue;
+    }
+    // 완료 클러스터는 "먹은 것 숨기기" 시 숨김 (리젠 자원은 완료 개념 없음)
+    if (state.hideCompleted && collectible && cell.done === total) continue;
+    const lat = cell.sy / total, lng = cell.sx / total;
+    const label = collectible ? cell.done + "/" + total : String(total); // 수집대상은 수집/전체, 리젠은 개수
+    const cm = L.marker([lat, lng], {
+      icon: clusterIcon(cell.cat, label, collectible && cell.done === total), keyboard: false,
+    });
     cm.on("click", () => state.map.setView([lat, lng], Math.min(zoom + 2, state.map.getMaxZoom())));
     cm.addTo(state.layer);
   }
