@@ -15,7 +15,7 @@ registerCategories("space_temple", {
  },
  "18": {
   "name": "인도의 선령",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#63e0c8",
   "icon": "https://act.hoyoverse.com/map_manage/20221124/926971d36ee457985e5c0a2b174656df_5544907598451433132.png",
   "count": 1
@@ -43,28 +43,28 @@ registerCategories("space_temple", {
  },
  "64": {
   "name": "타임어택",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#6ce0d0",
   "icon": "https://act.hoyoverse.com/map_manage/20221124/80fb45f0539e8a30bebc49674f7d4624_4924044601209939106.png",
   "count": 20
  },
  "71": {
   "name": "횃불 기관",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#8fd06c",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/5de5e49116c2d2fa99d489dcfab076db_3634744626698504119.png",
   "count": 1
  },
  "77": {
   "name": "사소한 수수께끼",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#b98ce0",
   "icon": "https://act.hoyoverse.com/map_manage/20221124/aeacbcc6ad46920a65f5300f0514fbdd_8228998968394817192.png",
   "count": 30
  },
  "79": {
   "name": "최초 처치 적",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#63e0c8",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/4cca7114e8db044283d84ed3b0b72b06_3013383440599720966.png",
   "count": 10
@@ -309,7 +309,7 @@ registerCategories("space_temple", {
  },
  "447": {
   "name": "태고의 불씨",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#f58fb4",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/59c337c1af358772bb2c306e1196ee60_6563257826292293603.png",
   "count": 3
@@ -400,77 +400,77 @@ registerCategories("space_temple", {
  },
  "796": {
   "name": "분할 관리 영역 수호자·정리형",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#d0c85a",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20260410/1a5650455088e58da320f4a853465564_8636969598988191722.png",
   "count": 3
  },
  "797": {
   "name": "분할 관리 영역 수호자·순찰형",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#8c9ee0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20260410/29eb9ab0185a8617696d00a6a2737754_3520989749834434613.png",
   "count": 3
  },
  "799": {
   "name": "「원소 큐브」 진열장",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#a0d06c",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20260421/3b99b10207543fbbe0a83e08e35120fc_3408183357246487904.png",
   "count": 19
  },
  "800": {
   "name": "다리 연결",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#6ce0d0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20260422/82edc9e1178faf9a4026fac98a95f552_7920976316931786971.png",
   "count": 1
  },
  "801": {
   "name": "유물 진열장",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#6c8ce0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20260423/3d44e1ad3af98c7c90eaf06083515d4a_4014109156748662943.png",
   "count": 2
  },
  "802": {
   "name": "공간 조작",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#e0925a",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20260327/91f28796795ace88b9617552a716b33e_1095705343042697093.png",
   "count": 3
  },
  "803": {
   "name": "변형 블록",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#e06c9e",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20260422/95677c32ce2a310b42890fa2a67c0cf2_4822429961084326085.png",
   "count": 1
  },
  "804": {
   "name": "모래 건물",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#5ba8f5",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20260422/8e15a61745f206ea21b6ed8c632431c3_3978039807586844130.png",
   "count": 2
  },
  "805": {
   "name": "복원 코어",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#8c9ee0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20260422/2b88d607935bd5265701d50e969f0e79_2943616190234629241.png",
   "count": 7
  },
  "807": {
   "name": "그림 속 세상",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#b98ce0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20260422/9e085f4b292da43cda28155c54cb0e77_5032625625891270140.png",
   "count": 9
  },
  "808": {
   "name": "죽음 명상의 관",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#6cd0a0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20260422/49a5e2ccfcba819f52672541de2e4824_317651616267386030.png",
   "count": 3

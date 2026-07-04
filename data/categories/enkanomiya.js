@@ -22,7 +22,7 @@ registerCategories("enkanomiya", {
  },
  "18": {
   "name": "인도의 선령",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#6cd0a0",
   "icon": "https://act.hoyoverse.com/map_manage/20221124/926971d36ee457985e5c0a2b174656df_5544907598451433132.png",
   "count": 39
@@ -141,28 +141,28 @@ registerCategories("enkanomiya", {
  },
  "64": {
   "name": "타임어택",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#d0c85a",
   "icon": "https://act.hoyoverse.com/map_manage/20221124/80fb45f0539e8a30bebc49674f7d4624_4924044601209939106.png",
   "count": 18
  },
  "70": {
   "name": "원소 비석",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#7ad4e0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/670304cc9bdc9452ce3050042c51dd7e_4428820328534567979.png",
   "count": 11
  },
  "72": {
   "name": "대형 부서진 바위",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#f0b45a",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/2b8f481203d5190f488e3605570a4b75_7912786785352362786.png",
   "count": 1
  },
  "77": {
   "name": "사소한 수수께끼",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#6c8ce0",
   "icon": "https://act.hoyoverse.com/map_manage/20221124/aeacbcc6ad46920a65f5300f0514fbdd_8228998968394817192.png",
   "count": 24
@@ -386,7 +386,7 @@ registerCategories("enkanomiya", {
  },
  "270": {
   "name": "환영",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#e0925a",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/be2f22c930e6c16545e33394bc4fd1d4_3632802436416063082.png",
   "count": 18

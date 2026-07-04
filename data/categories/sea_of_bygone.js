@@ -15,7 +15,7 @@ registerCategories("sea_of_bygone", {
  },
  "18": {
   "name": "인도의 선령",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#8fd06c",
   "icon": "https://act.hoyoverse.com/map_manage/20221124/926971d36ee457985e5c0a2b174656df_5544907598451433132.png",
   "count": 7
@@ -50,21 +50,21 @@ registerCategories("sea_of_bygone", {
  },
  "64": {
   "name": "타임어택",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#d0c85a",
   "icon": "https://act.hoyoverse.com/map_manage/20221124/80fb45f0539e8a30bebc49674f7d4624_4924044601209939106.png",
   "count": 22
  },
  "69": {
   "name": "보물상자 발굴",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#63e0c8",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20250421/1fd1f9681b40a16e133636ef8e8cfd0c_5287207395842708659.png",
   "count": 2
  },
  "77": {
   "name": "사소한 수수께끼",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#6c8ce0",
   "icon": "https://act.hoyoverse.com/map_manage/20221124/aeacbcc6ad46920a65f5300f0514fbdd_8228998968394817192.png",
   "count": 11
@@ -246,7 +246,7 @@ registerCategories("sea_of_bygone", {
  },
  "509": {
   "name": "폰타인 지령 감실",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#f58fb4",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/15f0b5dd8f23b3971fea088b19015578_4872810039607019961.png",
   "count": 2
@@ -274,42 +274,42 @@ registerCategories("sea_of_bygone", {
  },
  "547": {
   "name": "지방 전설",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#e0925a",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/c58af38ac984e0b69693a33ef6750a5b_6862120715279690962.png",
   "count": 1
  },
  "551": {
   "name": "위치 에너지 공",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#6cd0a0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/7912d86b3a5a37b058c4689dec7edb6d_6126720894648212332.png",
   "count": 1
  },
  "580": {
   "name": "찬란한 말미잘",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#7ad4e0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240408/1854d6691cf9391a4c6d223266a67ee2_4149905176705205825.png",
   "count": 2
  },
  "581": {
   "name": "자동 파이프",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#d0c85a",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240408/b62e79aeb837fdaf5e1cfe7e3537dc84_5788376585057250345.png",
   "count": 2
  },
  "582": {
   "name": "살랑 뱀장어",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#6c8ce0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240408/18f5458d3eaf8517845b6570bc6652e8_6118026693006768136.png",
   "count": 4
  },
  "583": {
   "name": "황금 초롱아귀",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#6cd0a0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240408/57f789373f16eab974fb5cf0c336e0fd_5554382941811972191.png",
   "count": 5
@@ -330,7 +330,7 @@ registerCategories("sea_of_bygone", {
  },
  "588": {
   "name": "소라 문어",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#6cd0a0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240423/716b377161ac918a1babda6cb4d4ca11_233833398802298556.png",
   "count": 16

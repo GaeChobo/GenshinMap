@@ -29,7 +29,7 @@ registerCategories("chasm_underground", {
  },
  "18": {
   "name": "인도의 선령",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#8c9ee0",
   "icon": "https://act.hoyoverse.com/map_manage/20221124/926971d36ee457985e5c0a2b174656df_5544907598451433132.png",
   "count": 30
@@ -141,35 +141,35 @@ registerCategories("chasm_underground", {
  },
  "64": {
   "name": "타임어택",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#8c9ee0",
   "icon": "https://act.hoyoverse.com/map_manage/20221124/80fb45f0539e8a30bebc49674f7d4624_4924044601209939106.png",
   "count": 15
  },
  "70": {
   "name": "원소 비석",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#e0925a",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/670304cc9bdc9452ce3050042c51dd7e_4428820328534567979.png",
   "count": 15
  },
  "72": {
   "name": "대형 부서진 바위",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#c86cd0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/2b8f481203d5190f488e3605570a4b75_7912786785352362786.png",
   "count": 3
  },
  "77": {
   "name": "사소한 수수께끼",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#c86cd0",
   "icon": "https://act.hoyoverse.com/map_manage/20221124/aeacbcc6ad46920a65f5300f0514fbdd_8228998968394817192.png",
   "count": 29
  },
  "79": {
   "name": "최초 처치 적",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#6ce0d0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/4cca7114e8db044283d84ed3b0b72b06_3013383440599720966.png",
   "count": 3
@@ -323,7 +323,7 @@ registerCategories("chasm_underground", {
  },
  "231": {
   "name": "플랫폼 연결",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#8c9ee0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/cca73ff542eb5d96fe631aad5df42f41_4837142277292180726.png",
   "count": 1

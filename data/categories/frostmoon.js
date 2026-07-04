@@ -57,28 +57,28 @@ registerCategories("frostmoon", {
  },
  "64": {
   "name": "타임어택",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#5ba8f5",
   "icon": "https://act.hoyoverse.com/map_manage/20221124/80fb45f0539e8a30bebc49674f7d4624_4924044601209939106.png",
   "count": 9
  },
  "66": {
   "name": "떠다니는 바람 슬라임",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#5ba8f5",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/7fecf717382e3e3dd1b8daa54f47c5f5_4157324329260752726.png",
   "count": 2
  },
  "77": {
   "name": "사소한 수수께끼",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#8fd06c",
   "icon": "https://act.hoyoverse.com/map_manage/20221124/aeacbcc6ad46920a65f5300f0514fbdd_8228998968394817192.png",
   "count": 59
  },
  "79": {
   "name": "최초 처치 적",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#a0d06c",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/4cca7114e8db044283d84ed3b0b72b06_3013383440599720966.png",
   "count": 10
@@ -295,14 +295,14 @@ registerCategories("frostmoon", {
  },
  "798": {
   "name": "고대 달의 힘",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#e06666",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20260605/674eb03a576fae6058f2d2b1ab7b2e15_7947072713602550284.png",
   "count": 59
  },
  "806": {
   "name": "월령 감실",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#6ce0d0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20260605/b047e635886f9686de52b22be5f050fb_4977505063094215854.png",
   "count": 3

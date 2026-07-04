@@ -45,6 +45,9 @@ function flattenLabels(tree, out, group) {
   return out;
 }
 
+// 그룹 이름 보정: 호요랩 "퍼즐 보물상자"(실은 상자를 여는 퍼즐/장치)를 "상자 기믹"으로 표기
+const GROUP_RENAME = { "퍼즐 보물상자": "상자 기믹" };
+
 const PALETTE = [
   "#5ba8f5", "#63e0c8", "#f0b45a", "#8fd06c", "#e06666", "#b98ce0",
   "#f58fb4", "#7ad4e0", "#d0c85a", "#8c9ee0", "#e0925a", "#6cd0a0",
@@ -137,7 +140,8 @@ const PALETTE = [
   const categories = {};
   catIds.forEach((id, idx) => {
     const meta = labelMeta[id] || { name: "카테고리 " + id, group: "기타", icon: "" };
-    categories[id] = { name: meta.name, group: meta.group, color: PALETTE[idx % PALETTE.length], icon: meta.icon || "", count: present[id] };
+    const group = GROUP_RENAME[meta.group] || meta.group;
+    categories[id] = { name: meta.name, group, color: PALETTE[idx % PALETTE.length], icon: meta.icon || "", count: present[id] };
   });
   console.log(`  카테고리 ${catIds.length}종`);
 

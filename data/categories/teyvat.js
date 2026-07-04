@@ -29,14 +29,14 @@ registerCategories("teyvat", {
  },
  "8": {
   "name": "몬드 지령 감실",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#6ce0d0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/1e4f19dec0512a085939e1f2eebea6f1_4012946283878275197.png",
   "count": 10
  },
  "9": {
   "name": "리월 지령 감실",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#e06c9e",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/f6663a092b83ae3f3711ca059f3e196a_3265186852573072316.png",
   "count": 10
@@ -64,7 +64,7 @@ registerCategories("teyvat", {
  },
  "18": {
   "name": "인도의 선령",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#8c9ee0",
   "icon": "https://act.hoyoverse.com/map_manage/20221124/926971d36ee457985e5c0a2b174656df_5544907598451433132.png",
   "count": 421
@@ -323,98 +323,98 @@ registerCategories("teyvat", {
  },
  "64": {
   "name": "타임어택",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#5ba8f5",
   "icon": "https://act.hoyoverse.com/map_manage/20221124/80fb45f0539e8a30bebc49674f7d4624_4924044601209939106.png",
   "count": 629
  },
  "65": {
   "name": "풍차 장치",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#a0d06c",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/2eea1d45f075981e794ce94b9dd42d90_902447181522574846.png",
   "count": 10
  },
  "66": {
   "name": "떠다니는 바람 슬라임",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#8fd06c",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/7fecf717382e3e3dd1b8daa54f47c5f5_4157324329260752726.png",
   "count": 42
  },
  "67": {
   "name": "압력 기관",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#d0c85a",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/072896865c1d1634503dbca012369498_1402896234865406861.png",
   "count": 39
  },
  "68": {
   "name": "퐁퐁나무",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#e0925a",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/41ee0524cb37842bafe7eaa41d0ccaaa_2326058668248220795.png",
   "count": 63
  },
  "69": {
   "name": "보물상자 발굴",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#a0d06c",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20250421/1fd1f9681b40a16e133636ef8e8cfd0c_5287207395842708659.png",
   "count": 102
  },
  "70": {
   "name": "원소 비석",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#5ba8f5",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/670304cc9bdc9452ce3050042c51dd7e_4428820328534567979.png",
   "count": 197
  },
  "71": {
   "name": "횃불 기관",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#e0d76c",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/5de5e49116c2d2fa99d489dcfab076db_3634744626698504119.png",
   "count": 105
  },
  "72": {
   "name": "대형 부서진 바위",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#8fd06c",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/2b8f481203d5190f488e3605570a4b75_7912786785352362786.png",
   "count": 116
  },
  "73": {
   "name": "돌무덤(소)",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#5ba8f5",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/b9198b1e870294886a6157aa11a69e39_8468795986776894653.png",
   "count": 17
  },
  "74": {
   "name": "식물 채집",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#b98ce0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/7200f7e1f2125fbd514594a932a7e4e4_8310761691440542276.png",
   "count": 16
  },
  "75": {
   "name": "속박되어 있는 보물상자",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#8c9ee0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/cde38783c3e5e6e82c67d680daffcc3a_8813351891392548690.png",
   "count": 147
  },
  "76": {
   "name": "바위의 씨앗",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#6cd0a0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/b1fabbc5df8d14073a838f982a7459bd_3780594778072327393.png",
   "count": 23
  },
  "77": {
   "name": "사소한 수수께끼",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#f0b45a",
   "icon": "https://act.hoyoverse.com/map_manage/20221124/aeacbcc6ad46920a65f5300f0514fbdd_8228998968394817192.png",
   "count": 574
@@ -428,7 +428,7 @@ registerCategories("teyvat", {
  },
  "79": {
   "name": "최초 처치 적",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#6c8ce0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/4cca7114e8db044283d84ed3b0b72b06_3013383440599720966.png",
   "count": 102
@@ -456,7 +456,7 @@ registerCategories("teyvat", {
  },
  "83": {
   "name": "광풍의 장벽",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#e06666",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/5be12fc5fcf63867e05f6544e392148c_938345218823235299.png",
   "count": 20
@@ -722,7 +722,7 @@ registerCategories("teyvat", {
  },
  "148": {
   "name": "따뜻한 선령",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#f58fb4",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/eab76ba3546da5b1b7613c88e3562ac0_8947885709978999087.png",
   "count": 33
@@ -764,7 +764,7 @@ registerCategories("teyvat", {
  },
  "155": {
   "name": "고대의 얼음",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#63e0c8",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/c6a164186609adf7c5f5a70b7ee7c001_3907409464962528862.png",
   "count": 17
@@ -1065,7 +1065,7 @@ registerCategories("teyvat", {
  },
  "205": {
   "name": "인도의 선령·번개",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#b98ce0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/6c270f45b9ba4ed9066953ed5d5ab346_1039172534050133171.png",
   "count": 82
@@ -1100,7 +1100,7 @@ registerCategories("teyvat", {
  },
  "212": {
   "name": "이나즈마 지령 감실",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#6c8ce0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/d66c9cf198c8e55e03cb931e3055c28c_6885718791560199581.png",
   "count": 10
@@ -1121,7 +1121,7 @@ registerCategories("teyvat", {
  },
  "216": {
   "name": "기관 큐브",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#e0d76c",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/ac173ae788e163ae6f1bf7926aeddbeb_9155164483060339219.png",
   "count": 53
@@ -1177,14 +1177,14 @@ registerCategories("teyvat", {
  },
  "225": {
   "name": "쿠지라이",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#c86cd0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/a91721d80a2f59b3ad1d93b6a837d5b3_730888552419890466.png",
   "count": 8
  },
  "226": {
   "name": "댄디",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#7ad4e0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/b75554a86191b22497f451b9b738bd31_834190610169643162.png",
   "count": 12
@@ -1212,14 +1212,14 @@ registerCategories("teyvat", {
  },
  "230": {
   "name": "전기 전도",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#c86cd0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/c377be8b2a82e263fa273e881f0891a4_4024033732947496711.png",
   "count": 37
  },
  "231": {
   "name": "플랫폼 연결",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#f0b45a",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/cca73ff542eb5d96fe631aad5df42f41_4837142277292180726.png",
   "count": 5
@@ -1387,14 +1387,14 @@ registerCategories("teyvat", {
  },
  "258": {
   "name": "뇌정 탐침",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#6c8ce0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/adb9d067dae8e573a5472f2b36f06785_4641665512625049581.png",
   "count": 21
  },
  "259": {
   "name": "검자루",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#6c8ce0",
   "icon": "https://act.hoyoverse.com/map_manage/20221124/d34fe9ea58c32af9735d6b2f3b3b3bb0_2598597442135880953.png",
   "count": 9
@@ -1464,7 +1464,7 @@ registerCategories("teyvat", {
  },
  "270": {
   "name": "환영",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#63e0c8",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/be2f22c930e6c16545e33394bc4fd1d4_3632802436416063082.png",
   "count": 13
@@ -1863,14 +1863,14 @@ registerCategories("teyvat", {
  },
  "353": {
   "name": "특이한 암석",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#e0d76c",
   "icon": "https://act.hoyoverse.com/map_manage/20221124/4022104fca211e29c646fa8b270859e1_938922069477804022.png",
   "count": 23
  },
  "354": {
   "name": "죽음의 땅",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#e06666",
   "icon": "https://act.hoyoverse.com/map_manage/20221124/97bc33301b27b25c7eae002d782171e7_1627485716650494641.png",
   "count": 49
@@ -1933,7 +1933,7 @@ registerCategories("teyvat", {
  },
  "369": {
   "name": "수메르 수수께끼",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#c86cd0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/7a12733a34841d0e92e562dfa153434e_5333949391840921776.png",
   "count": 68
@@ -2031,28 +2031,28 @@ registerCategories("teyvat", {
  },
  "396": {
   "name": "야외의 모밭",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#e0925a",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/9fc9b089786d8df5333a52ae478769b7_513594890950883008.png",
   "count": 12
  },
  "397": {
   "name": "돌기둥의 봉인",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#8fd06c",
   "icon": "https://act.hoyoverse.com/map_manage/20221124/ab291ab2140f2988db709197789f43eb_9193226400607634977.png",
   "count": 17
  },
  "398": {
   "name": "환몽의 문",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#6cd0a0",
   "icon": "https://act.hoyoverse.com/map_manage/20221124/cd5b145d6d1ff0d6dc5e26c7f011b219_409943763109673646.png",
   "count": 12
  },
  "399": {
   "name": "사피라 빛 장치",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#5ba8f5",
   "icon": "https://act.hoyoverse.com/map_manage/20221124/a25ae032607543852140fcc4b6c96a95_2177738824337664381.png",
   "count": 8
@@ -2101,7 +2101,7 @@ registerCategories("teyvat", {
  },
  "407": {
   "name": "삼승 씨앗",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#63e0c8",
   "icon": "https://act.hoyoverse.com/map_manage/20221124/1efe2ef7e7c67da4659df32a3a4c37ca_9146126703800174900.png",
   "count": 7
@@ -2122,7 +2122,7 @@ registerCategories("teyvat", {
  },
  "411": {
   "name": "수메르 지령 감실",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#e06666",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/ea924d04093bbeba5fd183e749690c28_971722780731088969.png",
   "count": 10
@@ -2304,35 +2304,35 @@ registerCategories("teyvat", {
  },
  "444": {
   "name": "태고의 오벨리스크",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#e0d76c",
   "icon": "https://act.hoyoverse.com/map_manage/20221124/d9289ffc4b8cb437668163e3f77dece9_5748016694667577669.png",
   "count": 18
  },
  "445": {
   "name": "환영의 벽화",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#8fd06c",
   "icon": "https://act.hoyoverse.com/map_manage/20221124/1cfdd8ff815ab6edd9473e262528eecf_647955987353086718.png",
   "count": 5
  },
  "446": {
   "name": "에버라이트 부품",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#b98ce0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/1f5d0ddc3e16272968329ad7f2707896_9186829227205476932.png",
   "count": 49
  },
  "447": {
   "name": "태고의 불씨",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#b98ce0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/59c337c1af358772bb2c306e1196ee60_6563257826292293603.png",
   "count": 34
  },
  "448": {
   "name": "태고의 모래시계",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#e0d76c",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/3223c9186a2052060354ca317ec7c865_6268486221789848305.png",
   "count": 12
@@ -2409,21 +2409,21 @@ registerCategories("teyvat", {
  },
  "459": {
   "name": "「잿빛 수정」 속 마물",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#6ce0d0",
   "icon": "https://act.hoyoverse.com/map_manage/20230411/85ec0df40716de19a8eda2757b77d410_5811994812873105145.png",
   "count": 2
  },
  "460": {
   "name": "풍화된 비석",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#7ad4e0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/cbff58c33817d3b83b5892999d74ed5a_4925796581032556254.png",
   "count": 33
  },
  "461": {
   "name": "바람의 악령",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#f0b45a",
   "icon": "https://act.hoyoverse.com/map_manage/20221229/3af2f887f0457ddca4579edcf249883e_1898568037029554537.png",
   "count": 7
@@ -2444,7 +2444,7 @@ registerCategories("teyvat", {
  },
  "464": {
   "name": "저수지",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#f58fb4",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/3ad24ba0f10c1b7696979064151fcb0e_9013805631143523012.png",
   "count": 9
@@ -2507,70 +2507,70 @@ registerCategories("teyvat", {
  },
  "473": {
   "name": "감로 하루살이",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#6ce0d0",
   "icon": "https://act.hoyoverse.com/map_manage/20230411/c555be6021ee5a085d26b61ca815c1d2_5687750446890613597.png",
   "count": 3
  },
  "474": {
   "name": "잿빛 수정",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#e06c9e",
   "icon": "https://act.hoyoverse.com/map_manage/20230411/b9a8ca497d9c41c4a51f7e1d338d7929_4471292256174909869.png",
   "count": 2
  },
  "475": {
   "name": "순야타 꽃",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#e06c9e",
   "icon": "https://act.hoyoverse.com/map_manage/20230411/1f43c25e066337788cdf87362cd2592f_4145681570569106104.png",
   "count": 3
  },
  "476": {
   "name": "코리 북",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#b98ce0",
   "icon": "https://act.hoyoverse.com/map_manage/20230411/ed6656596bc88232cac3114b0eb5de55_3150752718799540580.png",
   "count": 5
  },
  "477": {
   "name": "니로다 열매",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#f58fb4",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/657467bcd6427b1f63f23cdfa2e6a685_5744639866409099248.png",
   "count": 11
  },
  "478": {
   "name": "영혼의 종",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#e06666",
   "icon": "https://act.hoyoverse.com/map_manage/20230411/6182d8c544fe4ab1c4e831711c178493_3608034795051806053.png",
   "count": 7
  },
  "479": {
   "name": "영혼이 깃든 나무",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#f58fb4",
   "icon": "https://act.hoyoverse.com/map_manage/20230411/27c8e512828f37f1833ff5673b952e5a_122806875067315450.png",
   "count": 10
  },
  "480": {
   "name": "크바레나 하루살이",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#b98ce0",
   "icon": "https://act.hoyoverse.com/map_manage/20230411/24baef553b9b4059119796d848809bea_1333905089105701264.png",
   "count": 7
  },
  "481": {
   "name": "크바레나 코어",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#f58fb4",
   "icon": "https://act.hoyoverse.com/map_manage/20230411/343a26b218af2e72dcbbeca2807081ff_2039102663978301627.png",
   "count": 5
  },
  "482": {
   "name": "빛을 속박한 넝쿨",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#7ad4e0",
   "icon": "https://act.hoyoverse.com/map_manage/20230411/157afbef6b4a9f0bcaf727b0def2bbba_3259968515074790284.png",
   "count": 10
@@ -2654,7 +2654,7 @@ registerCategories("teyvat", {
  },
  "499": {
   "name": "프뉴무시아 장치",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#f58fb4",
   "icon": "https://act.hoyoverse.com/map_manage/20230724/4deda618a7d325d4cc6e140567ee37b4_5770080062898373497.png",
   "count": 41
@@ -2724,7 +2724,7 @@ registerCategories("teyvat", {
  },
  "509": {
   "name": "폰타인 지령 감실",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#f0b45a",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/15f0b5dd8f23b3971fea088b19015578_4872810039607019961.png",
   "count": 8
@@ -2794,7 +2794,7 @@ registerCategories("teyvat", {
  },
  "520": {
   "name": "비행선",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#a0d06c",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/fdac0a7f9327d40acc70ff2f0bb24c5e_3029597253717164061.png",
   "count": 2
@@ -2948,21 +2948,21 @@ registerCategories("teyvat", {
  },
  "542": {
   "name": "전이 단말기",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#c86cd0",
   "icon": "https://act.hoyoverse.com/map_manage/20230925/9f5c4c021bd7231e43135022a76b6812_4572540551685922579.png",
   "count": 12
  },
  "543": {
   "name": "안정 장치",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#7ad4e0",
   "icon": "https://act.hoyoverse.com/map_manage/20230925/f647f7a1c09528a05e391d1c284afe3e_8088064670609147982.png",
   "count": 16
  },
  "544": {
   "name": "물수정 과일",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#d0c85a",
   "icon": "https://act.hoyoverse.com/map_manage/20230925/73948cee34c9be8e3006f6d65bf5a052_6535684026528869617.png",
   "count": 16
@@ -2983,7 +2983,7 @@ registerCategories("teyvat", {
  },
  "547": {
   "name": "지방 전설",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#e06c9e",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/c58af38ac984e0b69693a33ef6750a5b_6862120715279690962.png",
   "count": 26
@@ -3004,21 +3004,21 @@ registerCategories("teyvat", {
  },
  "550": {
   "name": "조화의 파이프",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#6ce0d0",
   "icon": "https://act.hoyoverse.com/map_manage/20231106/b84ebf9f799baac04ac6116c95b56d8a_8237453046413993982.png",
   "count": 15
  },
  "551": {
   "name": "위치 에너지 공",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#e06666",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/7912d86b3a5a37b058c4689dec7edb6d_6126720894648212332.png",
   "count": 13
  },
  "552": {
   "name": "움직이는 장치",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#8c9ee0",
   "icon": "https://act.hoyoverse.com/map_manage/20231106/ed376d899e400865d042629ec05fed08_6533830978282359267.png",
   "count": 16
@@ -3060,28 +3060,28 @@ registerCategories("teyvat", {
  },
  "559": {
   "name": "향기로운 옥솥",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#8c9ee0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240125/87d0c9334bd1a407f0d82d2765eeefef_162534410930982339.png",
   "count": 19
  },
  "560": {
   "name": "고대 유적",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#8c9ee0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240125/15376b7a5d8576887ba06cf809e8af37_8600359974357358719.png",
   "count": 6
  },
  "561": {
   "name": "흐르는 연꽃의 풍경",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#f58fb4",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/788a9dcdc661e43eb34119d55c8cf039_1760180339797004263.png",
   "count": 13
  },
  "562": {
   "name": "느긋느긋 선상",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#e06c9e",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/8c32dd8ff5f2f006d056294e043e3eee_3877511760311550041.png",
   "count": 31
@@ -3179,28 +3179,28 @@ registerCategories("teyvat", {
  },
  "576": {
   "name": "성한 기운 위치",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#7ad4e0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240203/86ff9140fdb956d0dad4bd97bd0f6c01_5643122521145112537.png",
   "count": 7
  },
  "577": {
   "name": "나타 지령 감실",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#6cd0a0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240813/2d61ff4eb8835584c36b1561bae22a3c_9013011878058811881.png",
   "count": 10
  },
  "578": {
   "name": "책장",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#8fd06c",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240408/8f9f8013110465268f199d41df4b7993_8937305237217524463.png",
   "count": 8
  },
  "581": {
   "name": "자동 파이프",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#5ba8f5",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240408/b62e79aeb837fdaf5e1cfe7e3537dc84_5788376585057250345.png",
   "count": 2
@@ -3242,28 +3242,28 @@ registerCategories("teyvat", {
  },
  "597": {
   "name": "매니투",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#6cd0a0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240822/275df5cc293a43d9e8be83770b6f957a_1838391906353062561.png",
   "count": 106
  },
  "598": {
   "name": "캐치볼 공",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#b98ce0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240822/fcc83bcae889f222f321079e188157cb_4884407044686828864.png",
   "count": 8
  },
  "599": {
   "name": "묻혀있는 물건",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#6ce0d0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240822/dedb89980d35fd194e61ed6a3314ae35_7196464525339285874.png",
   "count": 18
  },
  "600": {
   "name": "용사의 도전",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#8c9ee0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240822/7ebfa38d0aa5d3419cab56ff49fd0c00_4434703768682222844.png",
   "count": 54
@@ -3669,7 +3669,7 @@ registerCategories("teyvat", {
  },
  "663": {
   "name": "출혼 시련 장소",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#f0b45a",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20250107/9947a96f9ed81230a5c7d66e80599329_6912185617100179263.png",
   "count": 3
@@ -3690,14 +3690,14 @@ registerCategories("teyvat", {
  },
  "667": {
   "name": "비밀근원 용 머리 방패?",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#8c9ee0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20250325/1ab83aea137c4a71ebafbb96d61eae3a_108651643701516918.png",
   "count": 5
  },
  "668": {
   "name": "분출암",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#e06666",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20250325/13370e82cb82656951c5848577482000_1374914547260384175.png",
   "count": 3
@@ -3767,7 +3767,7 @@ registerCategories("teyvat", {
  },
  "680": {
   "name": "지열 분출구",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#8fd06c",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20250325/5d3c514c476f023b0b091619518825ce_465384829087852320.png",
   "count": 2
@@ -3781,7 +3781,7 @@ registerCategories("teyvat", {
  },
  "683": {
   "name": "밤혼의 기둥 알현하기",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#f58fb4",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20250401/41e0bc9c5445242e29a6e2b82c60fe83_6697939149375587191.png",
   "count": 3
@@ -3816,7 +3816,7 @@ registerCategories("teyvat", {
  },
  "688": {
   "name": "양조꽃",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#c86cd0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20250723/11b4856c5e8a66e88be90178e61793e8_4005488462431462349.png",
   "count": 1
@@ -3921,7 +3921,7 @@ registerCategories("teyvat", {
  },
  "703": {
   "name": "변방 지령 감실",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#e0925a",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20250902/3ec2c6befa19d387245ba8bbd6bfd1fb_8034696689905101778.png",
   "count": 7
@@ -3977,84 +3977,84 @@ registerCategories("teyvat", {
  },
  "711": {
   "name": "달의 힘",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#b98ce0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20250815/c03ce67a7693550a7a0e09a3741fd5d4_1885089149688105470.png",
   "count": 29
  },
  "712": {
   "name": "월령의 길",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#6cd0a0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20250828/ab914d4887ee3ae869c9c5c650d8da10_7068995837453698281.png",
   "count": 8
  },
  "713": {
   "name": "조합 모듈",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#e06666",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20250828/094bc626afc8481e6ce45f0474290cd4_5876311153959721902.png",
   "count": 2
  },
  "714": {
   "name": "모니터봇",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#8c9ee0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20250828/79d815c109be234bbaa417012fa7f9f3_8566007278349105573.png",
   "count": 9
  },
  "715": {
   "name": "조석 인장석",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#e0d76c",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20250828/e0e678ebc841a62e7d69f69f15b82dd2_5911134140558512423.png",
   "count": 8
  },
  "716": {
   "name": "차가는 달의 거울",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#6c8ce0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20250828/8734ed53021abcc3b3fbd899ddc01f7f_8859035203064540244.png",
   "count": 12
  },
  "717": {
   "name": "달 이슬",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#e0925a",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20250815/ae8ba30e24ce0bb6e1d9a6115cd621bf_1710787227933425900.png",
   "count": 9
  },
  "718": {
   "name": "배리어 생성기",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#e0d76c",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20250815/71842fee2461a330d9d6fa1e3689fd0e_6573310316341232635.png",
   "count": 11
  },
  "719": {
   "name": "킁킁 두더지",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#7ad4e0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20250828/cb5223525b8ca024dc5173e485112359_6247334834268215417.png",
   "count": 4
  },
  "720": {
   "name": "청소 유닛",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#d0c85a",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20250828/dd934733b2d4597735ac4b8949b78ad3_6485110587745856344.png",
   "count": 4
  },
  "721": {
   "name": "정찰 유닛",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#8c9ee0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20250828/65e833539f403c4d8e61115f466d539f_1706886921443400313.png",
   "count": 4
  },
  "722": {
   "name": "달 입자",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#a0d06c",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20250815/3b9f678fb6b2a317f33102f7a248efd4_1504565407883702400.png",
   "count": 1
@@ -4460,49 +4460,49 @@ registerCategories("teyvat", {
  },
  "781": {
   "name": "어둠의 마안",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#c86cd0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20251218/bc893c5fbbbf2134e4e9b1f0c239f86b_1067643168541331756.png",
   "count": 11
  },
  "782": {
   "name": "달빛 장벽",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#c86cd0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20251218/b5e18676998396f2657f26f2b55aa4f8_2866264274071852813.png",
   "count": 8
  },
  "783": {
   "name": "부서진 결계 수정 코어",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#b98ce0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20251222/69fdf3c7570df73278fc41322f02007f_3292570568724456128.png",
   "count": 2
  },
  "784": {
   "name": "「양극 꽃술」과 「음극 꽃받침」",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#6ce0d0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20251222/d24197ca5001da7dd94a6081da7f1e2e_4201701940953458223.png",
   "count": 5
  },
  "785": {
   "name": "넘쳐흐르는 심연의 힘",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#c86cd0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20251218/164fa59d3be492575a6a5840419df5bd_4283218927528492807.png",
   "count": 10
  },
  "786": {
   "name": "프리즘 결정",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#e0d76c",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20251222/475c3e39d4727325154761b980431e90_7505573557366895829.png",
   "count": 16
  },
  "787": {
   "name": "심연 안개막",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#63e0c8",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20251218/f314fddc2ed4a5b0c40b079694930421_7878498041854336748.png",
   "count": 12
@@ -4530,7 +4530,7 @@ registerCategories("teyvat", {
  },
  "798": {
   "name": "고대 달의 힘",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#f58fb4",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20260605/674eb03a576fae6058f2d2b1ab7b2e15_7947072713602550284.png",
   "count": 2

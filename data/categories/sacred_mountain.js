@@ -78,35 +78,35 @@ registerCategories("sacred_mountain", {
  },
  "64": {
   "name": "타임어택",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#f0b45a",
   "icon": "https://act.hoyoverse.com/map_manage/20221124/80fb45f0539e8a30bebc49674f7d4624_4924044601209939106.png",
   "count": 4
  },
  "69": {
   "name": "보물상자 발굴",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#6cd0a0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20250421/1fd1f9681b40a16e133636ef8e8cfd0c_5287207395842708659.png",
   "count": 2
  },
  "70": {
   "name": "원소 비석",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#f0b45a",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/670304cc9bdc9452ce3050042c51dd7e_4428820328534567979.png",
   "count": 1
  },
  "77": {
   "name": "사소한 수수께끼",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#f58fb4",
   "icon": "https://act.hoyoverse.com/map_manage/20221124/aeacbcc6ad46920a65f5300f0514fbdd_8228998968394817192.png",
   "count": 28
  },
  "79": {
   "name": "최초 처치 적",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#f58fb4",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/4cca7114e8db044283d84ed3b0b72b06_3013383440599720966.png",
   "count": 9
@@ -246,7 +246,7 @@ registerCategories("sacred_mountain", {
  },
  "547": {
   "name": "지방 전설",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#8c9ee0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240726/c58af38ac984e0b69693a33ef6750a5b_6862120715279690962.png",
   "count": 1
@@ -260,7 +260,7 @@ registerCategories("sacred_mountain", {
  },
  "597": {
   "name": "매니투",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#8fd06c",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20240822/275df5cc293a43d9e8be83770b6f957a_1838391906353062561.png",
   "count": 4
@@ -407,21 +407,21 @@ registerCategories("sacred_mountain", {
  },
  "666": {
   "name": "부유 진흙핵",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#c86cd0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20250325/259c8984e967d3a93232d006d7fed182_4157554452324528042.png",
   "count": 19
  },
  "667": {
   "name": "비밀근원 용 머리 방패?",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#c86cd0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20250325/1ab83aea137c4a71ebafbb96d61eae3a_108651643701516918.png",
   "count": 1
  },
  "668": {
   "name": "분출암",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#5ba8f5",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20250325/13370e82cb82656951c5848577482000_1374914547260384175.png",
   "count": 14
@@ -463,14 +463,14 @@ registerCategories("sacred_mountain", {
  },
  "680": {
   "name": "지열 분출구",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#6c8ce0",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20250325/5d3c514c476f023b0b091619518825ce_465384829087852320.png",
   "count": 5
  },
  "681": {
   "name": "고체화 구슬",
-  "group": "퍼즐 보물상자",
+  "group": "상자 기믹",
   "color": "#a0d06c",
   "icon": "https://act-webstatic.hoyoverse.com/map_manage/20250325/2678d9c66810c53d1f10597a1ffec26b_9055906294461899228.png",
   "count": 2
