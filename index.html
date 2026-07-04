@@ -12,7 +12,22 @@
   <h1>내 원신 맵</h1>
   <select id="mapSelect" title="지도 선택"></select>
   <span id="stats"></span>
+  <span id="syncStatus" class="sync-status"></span>
   <span class="spacer"></span>
+
+  <div id="authArea">
+    <button id="loginBtn">로그인</button>
+    <div id="loginForm" class="hidden">
+      <input id="loginEmail" type="email" placeholder="이메일 주소" autocomplete="email">
+      <button id="loginSend">로그인 링크 받기</button>
+      <p class="tip">비밀번호 없이, 메일로 온 링크를 클릭하면 로그인돼요.</p>
+    </div>
+    <div id="userBox" class="hidden">
+      <span id="userEmail"></span>
+      <button id="logoutBtn">로그아웃</button>
+    </div>
+  </div>
+
   <button id="adminToggle">관리자 모드</button>
   <button id="exportBtn" class="hidden" title="현재 지도의 마커를 파일로 저장">마커 내보내기</button>
   <button id="clearCustomBtn" class="hidden" title="관리자 모드에서 추가한 마커를 모두 삭제">커스텀 초기화</button>
@@ -29,7 +44,7 @@
     </div>
     <h2>카테고리 <span class="hint">(그룹 클릭 → 펼치기)</span></h2>
     <div id="filters"></div>
-    <p class="tip">마커를 클릭 → <b>먹었음</b>을 누르면 지도에서 사라져요.<br>완료 상태는 이 브라우저에 자동 저장됩니다.</p>
+    <p class="tip">마커를 클릭 → <b>먹었음</b>을 누르면 지도에서 사라져요.<br>로그인하면 기기 간 동기화, 아니면 이 브라우저에 저장됩니다.</p>
   </aside>
   <div id="map"></div>
 </div>
@@ -49,7 +64,10 @@
 </div>
 
 <script src="lib/leaflet.js"></script>
+<script src="lib/supabase.js"></script>
+<script src="data/config.js"></script>
 <script src="data/maps.js"></script>
 <script src="js/app.js"></script>
+<script src="js/auth.js"></script>
 </body>
 </html>

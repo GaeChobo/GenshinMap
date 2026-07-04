@@ -182,6 +182,7 @@ function renderMarkers() {
 window.__toggleDone = function (id) {
   if (state.done[id]) delete state.done[id]; else state.done[id] = true;
   store.set(DONE_KEY, state.done);
+  if (window.Cloud && window.Cloud.enabled) window.Cloud.scheduleSync();
   if (state.hideCompleted) { state.map.closePopup(); renderMarkers(); }
   else {
     const cm = state.leafletById[id];
@@ -380,4 +381,14 @@ function boot() {
   initMap();
   selectMap(MAPS_LIST[0].id);
 }
+
+// 클라우드 동기화(auth.js)가 사용하는 훅
+window.getDone = () => state.done;
+window.applyDone = (obj) => {
+  state.done = obj || {};
+  store.set(DONE_KEY, state.done);
+  renderMarkers();
+  updateStats();
+};
+
 boot();
