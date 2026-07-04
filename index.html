@@ -20,13 +20,16 @@
 
 <div id="main">
   <aside id="sidebar">
-    <h2>카테고리</h2>
-    <div id="filters"></div>
+    <label id="hideCompletedRow" title="원신맵스처럼 먹은 마커를 지도에서 숨깁니다">
+      <input id="hideCompleted" type="checkbox"> 먹은 것 숨기기
+    </label>
     <div class="sidebar-actions">
       <button id="showAllBtn">전체 켜기</button>
       <button id="hideAllBtn">전체 끄기</button>
     </div>
-    <p class="tip">마커를 클릭하면 완료 체크를 할 수 있어요.<br>완료 상태는 이 브라우저에 자동 저장됩니다.</p>
+    <h2>카테고리 <span class="hint">(그룹 클릭 → 펼치기)</span></h2>
+    <div id="filters"></div>
+    <p class="tip">마커를 클릭 → <b>먹었음</b>을 누르면 지도에서 사라져요.<br>완료 상태는 이 브라우저에 자동 저장됩니다.</p>
   </aside>
   <div id="map"></div>
 </div>

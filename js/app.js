@@ -1,168 +1,137 @@
 "use strict";
 
 /* =========================================================
- * 내 원신 맵 - 1단계 (정적 버전)
- * - 지도별 마커 데이터는 data/markers/<지도id>.js 에서 필요할 때만 로드
+ * 내 원신 맵
+ * - 지도별 마커/카테고리 데이터는 필요할 때만 로드 (data/markers, data/categories)
  * - 마커는 캔버스로 렌더링 (수천 개도 가볍게)
- * - 완료 체크 / 커스텀 마커는 localStorage 저장
+ * - 원신맵스식: "완료(먹은 것)"는 지도에서 사라짐. 완료/커스텀은 localStorage 저장
  * ========================================================= */
 
-// ===== 카테고리 정의 (여기에 추가하면 필터/관리자 폼에 자동 반영) =====
-const CATEGORIES = {
-  waypoint:  { name: "워프 포인트", color: "#5ba8f5" },
-  oculus:    { name: "신의 눈동자", color: "#63e0c8" },
-  chest:     { name: "보물상자",    color: "#f0b45a" },
-  specialty: { name: "특산물",      color: "#8fd06c" },
-  boss:      { name: "필드 보스",   color: "#e06666" },
-  etc:       { name: "기타",        color: "#b98ce0" },
-};
-
-// ===== localStorage 헬퍼 =====
+// ===== localStorage =====
 const store = {
-  get(key, fallback) {
-    try {
-      const v = localStorage.getItem(key);
-      return v ? JSON.parse(v) : fallback;
-    } catch (e) { return fallback; }
-  },
-  set(key, value) { localStorage.setItem(key, JSON.stringify(value)); },
+  get(k, f) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : f; } catch (e) { return f; } },
+  set(k, v) { localStorage.setItem(k, JSON.stringify(v)); },
 };
-
 const DONE_KEY = "gmap_done_v1";
 const CUSTOM_KEY = "gmap_custom_v1";
-const HIDDEN_KEY = "gmap_hidden_v1";
+const HIDDEN_KEY = "gmap_hidden_v2";
+const HIDECOMPLETE_KEY = "gmap_hidecomplete_v1";
 
 // ===== 상태 =====
 const state = {
-  map: null,
-  overlay: null,
-  layer: null,
+  map: null, overlay: null, layer: null,
   currentMapId: null,
   baseMarkers: {},          // mapId -> [marker]
-  loadedFiles: new Set(),   // 이미 로드한 마커 파일
+  cats: {},                 // mapId -> { catId: {name, group, color, count} }
+  loaded: new Set(),
   custom: store.get(CUSTOM_KEY, []),
   done: store.get(DONE_KEY, {}),
-  hiddenCats: new Set(store.get(HIDDEN_KEY, [])),
+  hidden: {},               // mapId -> Set(catId)  (끈 카테고리)
+  hideCompleted: store.get(HIDECOMPLETE_KEY, true),
   admin: false,
-  leafletById: {},          // markerId -> L.CircleMarker
+  leafletById: {},
 };
+state.hidden = (() => {
+  const raw = store.get(HIDDEN_KEY, {});
+  const out = {}; for (const k in raw) out[k] = new Set(raw[k]); return out;
+})();
+function hiddenSet(mapId) { return state.hidden[mapId] || (state.hidden[mapId] = new Set()); }
+function saveHidden() {
+  const o = {}; for (const k in state.hidden) o[k] = [...state.hidden[k]]; store.set(HIDDEN_KEY, o);
+}
 
-// 마커 데이터 파일이 호출하는 등록 함수
-window.registerMarkers = function (mapId, markers) {
-  state.baseMarkers[mapId] = markers;
-};
+// 데이터 파일이 호출하는 등록 함수
+window.registerMarkers = (mapId, arr) => { state.baseMarkers[mapId] = arr; };
+window.registerCategories = (mapId, obj) => { state.cats[mapId] = obj; };
 
 // ===== 데이터 로딩 =====
-function ensureMarkersLoaded(mapId) {
+function loadScript(src) {
   return new Promise((resolve) => {
-    if (state.loadedFiles.has(mapId)) return resolve();
     const s = document.createElement("script");
-    s.src = "data/markers/" + mapId + ".js";
-    s.onload = () => { state.loadedFiles.add(mapId); resolve(); };
-    s.onerror = () => { // 파일이 없으면 빈 지도로 시작 (새 지도 추가 직후 상태)
-      state.baseMarkers[mapId] = state.baseMarkers[mapId] || [];
-      state.loadedFiles.add(mapId);
-      resolve();
-    };
-    document.body.appendChild(s);
+    s.src = src; s.onload = resolve; s.onerror = resolve; document.body.appendChild(s);
   });
 }
-
+async function ensureLoaded(mapId) {
+  if (state.loaded.has(mapId)) return;
+  await Promise.all([
+    loadScript("data/categories/" + mapId + ".js"),
+    loadScript("data/markers/" + mapId + ".js"),
+  ]);
+  state.baseMarkers[mapId] = state.baseMarkers[mapId] || [];
+  state.cats[mapId] = state.cats[mapId] || {};
+  state.loaded.add(mapId);
+}
 function loadImageSize(url) {
-  return new Promise((resolve, reject) => {
+  return new Promise((res, rej) => {
     const img = new Image();
-    img.onload = () => resolve({ w: img.naturalWidth, h: img.naturalHeight });
-    img.onerror = reject;
-    img.src = url;
+    img.onload = () => res({ w: img.naturalWidth, h: img.naturalHeight });
+    img.onerror = rej; img.src = url;
   });
 }
-
 function markersFor(mapId) {
-  const base = state.baseMarkers[mapId] || [];
-  const custom = state.custom.filter((m) => m.map === mapId);
-  return base.concat(custom);
+  return (state.baseMarkers[mapId] || []).concat(state.custom.filter((m) => m.map === mapId));
 }
-
-function isCustom(id) {
-  return state.custom.some((m) => m.id === id);
-}
+function catsFor(mapId) { return state.cats[mapId] || {}; }
+function catDef(mapId, id) { return catsFor(mapId)[id] || { name: "카테고리 " + id, group: "기타", color: "#b98ce0" }; }
+function isCustom(id) { return id[0] === "c"; }
 
 // ===== 지도 =====
 function initMap() {
   state.map = L.map("map", {
-    crs: L.CRS.Simple,
-    minZoom: -3,
-    maxZoom: 3,
-    zoomSnap: 0.25,
-    preferCanvas: true, // 캔버스 렌더링: 마커가 많아져도 가벼움
-    attributionControl: false,
+    crs: L.CRS.Simple, minZoom: -4, maxZoom: 4, zoomSnap: 0.25,
+    preferCanvas: true, attributionControl: false,
   });
   state.layer = L.layerGroup().addTo(state.map);
-
-  state.map.on("click", (e) => {
-    if (state.admin) addCustomMarker(e.latlng);
-  });
+  state.map.on("click", (e) => { if (state.admin) addCustomMarker(e.latlng); });
 }
 
 async function selectMap(mapId) {
   const def = MAPS_LIST.find((m) => m.id === mapId);
   if (!def) return;
   state.currentMapId = mapId;
-
-  const [size] = await Promise.all([
-    loadImageSize(def.image),
-    ensureMarkersLoaded(mapId),
-  ]);
-
+  const [size] = await Promise.all([loadImageSize(def.image), ensureLoaded(mapId)]);
   const bounds = [[0, 0], [size.h, size.w]];
   if (state.overlay) state.overlay.remove();
   state.overlay = L.imageOverlay(def.image, bounds).addTo(state.map);
-  state.map.setMaxBounds(L.latLngBounds(bounds).pad(0.3));
+  state.map.setMaxBounds(L.latLngBounds(bounds).pad(0.5));
   state.map.fitBounds(bounds);
-
-  renderMarkers();
+  buildAdminCats();
   renderFilters();
+  renderMarkers();
   updateStats();
 }
 
-// ===== 마커 렌더링 =====
+// ===== 마커 =====
+function markerVisible(m) {
+  if (hiddenSet(state.currentMapId).has(m.cat)) return false;
+  if (state.hideCompleted && state.done[m.id]) return false;
+  return true;
+}
 function markerStyle(m) {
-  const cat = CATEGORIES[m.category] || CATEGORIES.etc;
+  const c = catDef(state.currentMapId, m.cat);
   const done = !!state.done[m.id];
-  return {
-    radius: 8,
-    fillColor: cat.color,
-    fillOpacity: done ? 0.25 : 0.9,
-    color: done ? "#888" : "#ffffff",
-    weight: 2,
-    opacity: done ? 0.4 : 1,
-  };
+  return { radius: 7, fillColor: c.color, fillOpacity: done ? 0.3 : 0.9,
+    color: done ? "#888" : "#fff", weight: 2, opacity: done ? 0.5 : 1 };
 }
-
 function popupHtml(m) {
-  const cat = CATEGORIES[m.category] || CATEGORIES.etc;
+  const c = catDef(state.currentMapId, m.cat);
   const done = !!state.done[m.id];
-  let html =
-    '<div class="popup-title">' + escapeHtml(m.name) + "</div>" +
-    '<div class="popup-cat" style="color:' + cat.color + '">● ' + cat.name + "</div>";
-  if (m.desc) html += '<div class="popup-desc">' + escapeHtml(m.desc) + "</div>";
-  html += '<div class="popup-actions">';
-  html +=
+  const title = m.name || c.name;
+  let h = '<div class="popup-title">' + esc(title) + "</div>" +
+    '<div class="popup-cat" style="color:' + c.color + '">● ' + esc(c.name) + "</div>";
+  if (m.desc) h += '<div class="popup-desc">' + esc(m.desc) + "</div>";
+  h += '<div class="popup-actions">' +
     '<button class="done-btn ' + (done ? "is-done" : "") + '" onclick="__toggleDone(\'' + m.id + '\')">' +
-    (done ? "✓ 완료됨" : "완료 체크") + "</button>";
-  if (state.admin && isCustom(m.id)) {
-    html += '<button class="del-btn" onclick="__deleteCustom(\'' + m.id + '\')">삭제</button>';
-  }
-  html += "</div>";
-  return html;
+    (done ? "↩ 되돌리기" : "✓ 먹었음") + "</button>";
+  if (state.admin && isCustom(m.id))
+    h += '<button class="del-btn" onclick="__deleteCustom(\'' + m.id + '\')">삭제</button>';
+  return h + "</div>";
 }
-
 function renderMarkers() {
   state.layer.clearLayers();
   state.leafletById = {};
-  const list = markersFor(state.currentMapId);
-  for (const m of list) {
-    if (state.hiddenCats.has(m.category)) continue;
+  for (const m of markersFor(state.currentMapId)) {
+    if (!markerVisible(m)) continue;
     const cm = L.circleMarker([m.lat, m.lng], markerStyle(m));
     cm.bindPopup(() => popupHtml(m));
     cm.addTo(state.layer);
@@ -170,148 +139,164 @@ function renderMarkers() {
   }
 }
 
-// ===== 완료 체크 =====
 window.__toggleDone = function (id) {
-  if (state.done[id]) delete state.done[id];
-  else state.done[id] = true;
+  if (state.done[id]) delete state.done[id]; else state.done[id] = true;
   store.set(DONE_KEY, state.done);
-
-  const cm = state.leafletById[id];
-  const m = markersFor(state.currentMapId).find((x) => x.id === id);
-  if (cm && m) {
-    cm.setStyle(markerStyle(m));
-    cm.setPopupContent(popupHtml(m));
+  if (state.hideCompleted) { state.map.closePopup(); renderMarkers(); }
+  else {
+    const cm = state.leafletById[id];
+    const m = markersFor(state.currentMapId).find((x) => x.id === id);
+    if (cm && m) { cm.setStyle(markerStyle(m)); cm.setPopupContent(popupHtml(m)); }
   }
   updateStats();
 };
 
-// ===== 커스텀 마커 (관리자 모드) =====
+// ===== 커스텀 마커 (관리자) =====
 function addCustomMarker(latlng) {
-  const category = document.getElementById("adminCategory").value;
-  const nameInput = document.getElementById("adminName");
-  const descInput = document.getElementById("adminDesc");
-
-  const catDef = CATEGORIES[category];
-  const count = markersFor(state.currentMapId).filter((m) => m.category === category).length;
-  const name = nameInput.value.trim() || catDef.name + " " + (count + 1);
-
-  const marker = {
+  const cat = Number(document.getElementById("adminCategory").value);
+  const m = {
     id: "c" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
-    map: state.currentMapId,
-    category: category,
-    name: name,
-    desc: descInput.value.trim(),
-    lat: Math.round(latlng.lat),
-    lng: Math.round(latlng.lng),
+    map: state.currentMapId, cat,
+    name: document.getElementById("adminName").value.trim(),
+    desc: document.getElementById("adminDesc").value.trim(),
+    lat: Math.round(latlng.lat * 10) / 10, lng: Math.round(latlng.lng * 10) / 10,
   };
-  state.custom.push(marker);
-  store.set(CUSTOM_KEY, state.custom);
-  nameInput.value = "";
-
-  renderMarkers();
-  renderFilters();
-  updateStats();
+  state.custom.push(m); store.set(CUSTOM_KEY, state.custom);
+  document.getElementById("adminName").value = "";
+  renderFilters(); renderMarkers(); updateStats();
 }
-
 window.__deleteCustom = function (id) {
   state.custom = state.custom.filter((m) => m.id !== id);
   store.set(CUSTOM_KEY, state.custom);
-  state.map.closePopup();
-  renderMarkers();
-  renderFilters();
-  updateStats();
+  state.map.closePopup(); renderFilters(); renderMarkers(); updateStats();
 };
 
-// ===== 필터 =====
+// ===== 필터 (그룹별) =====
+function groupsFor(mapId) {
+  const cats = catsFor(mapId);
+  const present = {};
+  for (const m of markersFor(mapId)) present[m.cat] = (present[m.cat] || 0) + 1;
+  const groups = {};
+  for (const id of Object.keys(present).map(Number)) {
+    const c = catDef(mapId, id), g = c.group || "기타";
+    (groups[g] = groups[g] || []).push({ id, name: c.name, color: c.color, count: present[id] });
+  }
+  for (const g in groups) groups[g].sort((a, b) => b.count - a.count);
+  return groups;
+}
 function renderFilters() {
   const wrap = document.getElementById("filters");
   wrap.innerHTML = "";
-  const list = markersFor(state.currentMapId);
+  const groups = groupsFor(state.currentMapId);
+  const hidden = hiddenSet(state.currentMapId);
 
-  for (const key of Object.keys(CATEGORIES)) {
-    const cat = CATEGORIES[key];
-    const count = list.filter((m) => m.category === key).length;
-    if (count === 0) continue;
+  for (const gName of Object.keys(groups)) {
+    const items = groups[gName];
+    const total = items.reduce((s, i) => s + i.count, 0);
+    const anyOn = items.some((i) => !hidden.has(i.id));
 
-    const row = document.createElement("label");
-    row.className = "filter-row";
+    const gEl = document.createElement("div");
+    gEl.className = "grp";
 
-    const cb = document.createElement("input");
-    cb.type = "checkbox";
-    cb.checked = !state.hiddenCats.has(key);
-    cb.addEventListener("change", () => {
-      if (cb.checked) state.hiddenCats.delete(key);
-      else state.hiddenCats.add(key);
-      store.set(HIDDEN_KEY, [...state.hiddenCats]);
-      renderMarkers();
-      updateStats();
+    const head = document.createElement("div");
+    head.className = "grp-head";
+    const gcb = document.createElement("input");
+    gcb.type = "checkbox"; gcb.checked = anyOn;
+    gcb.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (gcb.checked) items.forEach((i) => hidden.delete(i.id));
+      else items.forEach((i) => hidden.add(i.id));
+      saveHidden(); renderFilters(); renderMarkers(); updateStats();
+    });
+    const gtitle = document.createElement("span");
+    gtitle.className = "grp-title"; gtitle.textContent = gName;
+    const gcount = document.createElement("span");
+    gcount.className = "count"; gcount.textContent = total;
+    const caret = document.createElement("span");
+    caret.className = "caret"; caret.textContent = "▸";
+
+    head.append(caret, gcb, gtitle, gcount);
+    const body = document.createElement("div");
+    body.className = "grp-body hidden";
+    head.addEventListener("click", () => {
+      body.classList.toggle("hidden");
+      caret.textContent = body.classList.contains("hidden") ? "▸" : "▾";
     });
 
-    const dot = document.createElement("span");
-    dot.className = "dot";
-    dot.style.background = cat.color;
-
-    const label = document.createElement("span");
-    label.textContent = cat.name;
-
-    const cnt = document.createElement("span");
-    cnt.className = "count";
-    cnt.textContent = count;
-
-    row.append(cb, dot, label, cnt);
-    wrap.appendChild(row);
+    for (const it of items) {
+      const row = document.createElement("label");
+      row.className = "filter-row";
+      const cb = document.createElement("input");
+      cb.type = "checkbox"; cb.checked = !hidden.has(it.id);
+      cb.addEventListener("change", () => {
+        if (cb.checked) hidden.delete(it.id); else hidden.add(it.id);
+        saveHidden(); renderMarkers(); updateStats();
+        gcb.checked = items.some((i) => !hidden.has(i.id));
+      });
+      const dot = document.createElement("span");
+      dot.className = "dot"; dot.style.background = it.color;
+      const nm = document.createElement("span"); nm.textContent = it.name;
+      const cnt = document.createElement("span"); cnt.className = "count"; cnt.textContent = it.count;
+      row.append(cb, dot, nm, cnt);
+      body.appendChild(row);
+    }
+    gEl.append(head, body);
+    wrap.appendChild(gEl);
   }
 }
-
 function setAllFilters(visible) {
-  if (visible) state.hiddenCats.clear();
-  else Object.keys(CATEGORIES).forEach((k) => state.hiddenCats.add(k));
-  store.set(HIDDEN_KEY, [...state.hiddenCats]);
-  renderFilters();
-  renderMarkers();
-  updateStats();
+  const hidden = hiddenSet(state.currentMapId);
+  if (visible) hidden.clear();
+  else for (const m of markersFor(state.currentMapId)) hidden.add(m.cat);
+  saveHidden(); renderFilters(); renderMarkers(); updateStats();
 }
 
 // ===== 통계 =====
 function updateStats() {
-  const list = markersFor(state.currentMapId).filter((m) => !state.hiddenCats.has(m.category));
+  const hidden = hiddenSet(state.currentMapId);
+  const list = markersFor(state.currentMapId).filter((m) => !hidden.has(m.cat));
   const done = list.filter((m) => state.done[m.id]).length;
-  document.getElementById("stats").textContent = "완료 " + done + " / " + list.length;
+  document.getElementById("stats").textContent = "먹음 " + done + " / " + list.length;
+}
+
+// ===== 관리자 폼 카테고리 =====
+function buildAdminCats() {
+  const sel = document.getElementById("adminCategory");
+  sel.innerHTML = "";
+  const groups = groupsFor(state.currentMapId);
+  for (const g of Object.keys(groups)) {
+    const og = document.createElement("optgroup"); og.label = g;
+    for (const it of groups[g]) {
+      const o = document.createElement("option"); o.value = it.id; o.textContent = it.name;
+      og.appendChild(o);
+    }
+    sel.appendChild(og);
+  }
+  if (!sel.options.length) {
+    const o = document.createElement("option"); o.value = "0"; o.textContent = "기타"; sel.appendChild(o);
+  }
 }
 
 // ===== 내보내기 =====
 function exportMarkers() {
-  const mapId = state.currentMapId;
-  const merged = markersFor(mapId).map((m) => ({
-    id: m.id,
-    category: m.category,
-    name: m.name,
-    desc: m.desc || "",
-    lat: m.lat,
-    lng: m.lng,
-  }));
-  const content = 'registerMarkers("' + mapId + '", ' + JSON.stringify(merged, null, 2) + ");\n";
-  const blob = new Blob([content], { type: "text/javascript" });
+  const id = state.currentMapId;
+  const merged = markersFor(id).map((m) => {
+    const o = { id: m.id, cat: m.cat, lat: m.lat, lng: m.lng };
+    if (m.name) o.name = m.name; if (m.desc) o.desc = m.desc; return o;
+  });
+  const content = 'registerMarkers("' + id + '", ' + JSON.stringify(merged) + ");\n";
   const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = mapId + ".js";
-  a.click();
-  URL.revokeObjectURL(a.href);
-  alert(
-    "다운로드된 " + mapId + ".js 파일을\ndata/markers/ 폴더에 덮어쓰면 저장 완료!\n" +
-    "덮어쓴 뒤에는 [커스텀 초기화]를 눌러 중복을 정리하세요."
-  );
+  a.href = URL.createObjectURL(new Blob([content], { type: "text/javascript" }));
+  a.download = id + ".js"; a.click(); URL.revokeObjectURL(a.href);
+  alert("다운로드된 " + id + ".js 를 data/markers/ 에 덮어쓰면 저장 완료!\n덮어쓴 뒤 [커스텀 초기화]로 정리하세요.");
 }
-
 function clearCustom() {
   const cnt = state.custom.filter((m) => m.map === state.currentMapId).length;
-  if (cnt === 0) { alert("이 지도에 커스텀 마커가 없습니다."); return; }
-  if (!confirm("이 지도의 커스텀 마커 " + cnt + "개를 삭제할까요?\n(마커 내보내기로 파일에 저장한 뒤에 눌러야 안전합니다)")) return;
+  if (!cnt) return alert("이 지도에 커스텀 마커가 없습니다.");
+  if (!confirm("이 지도의 커스텀 마커 " + cnt + "개를 삭제할까요?\n(마커 내보내기로 저장한 뒤에 눌러야 안전)")) return;
   state.custom = state.custom.filter((m) => m.map !== state.currentMapId);
   store.set(CUSTOM_KEY, state.custom);
-  renderMarkers();
-  renderFilters();
-  updateStats();
+  renderFilters(); renderMarkers(); updateStats();
 }
 
 // ===== 관리자 모드 =====
@@ -321,36 +306,28 @@ function toggleAdmin() {
   document.getElementById("adminPanel").classList.toggle("hidden", !state.admin);
   document.getElementById("exportBtn").classList.toggle("hidden", !state.admin);
   document.getElementById("clearCustomBtn").classList.toggle("hidden", !state.admin);
-  renderMarkers(); // 팝업의 삭제 버튼 표시 갱신
+  renderMarkers();
 }
 
 // ===== 유틸 =====
-function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, (c) => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
-  }[c]));
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
 
 // ===== 시작 =====
 function boot() {
-  // 지도 선택 드롭다운
   const sel = document.getElementById("mapSelect");
   for (const m of MAPS_LIST) {
-    const opt = document.createElement("option");
-    opt.value = m.id;
-    opt.textContent = m.name;
-    sel.appendChild(opt);
+    const o = document.createElement("option"); o.value = m.id; o.textContent = m.name; sel.appendChild(o);
   }
   sel.addEventListener("change", () => selectMap(sel.value));
 
-  // 관리자 폼 카테고리
-  const catSel = document.getElementById("adminCategory");
-  for (const key of Object.keys(CATEGORIES)) {
-    const opt = document.createElement("option");
-    opt.value = key;
-    opt.textContent = CATEGORIES[key].name;
-    catSel.appendChild(opt);
-  }
+  const hc = document.getElementById("hideCompleted");
+  hc.checked = state.hideCompleted;
+  hc.addEventListener("change", () => {
+    state.hideCompleted = hc.checked; store.set(HIDECOMPLETE_KEY, hc.checked);
+    renderMarkers(); updateStats();
+  });
 
   document.getElementById("adminToggle").addEventListener("click", toggleAdmin);
   document.getElementById("exportBtn").addEventListener("click", exportMarkers);
@@ -361,5 +338,4 @@ function boot() {
   initMap();
   selectMap(MAPS_LIST[0].id);
 }
-
 boot();
