@@ -1178,3 +1178,35 @@ label { cursor: pointer; }
   color: var(--ink-faint); background: transparent; border: 0; cursor: pointer;
 }
 .review-del:hover { color: var(--danger); }
+
+/* 로그인 폼 확장(비번/회원가입/소셜) */
+#loginForm input { width: 100%; }
+.login-actions { display: flex; gap: var(--sp-2); }
+.login-actions button { flex: 1; }
+.login-msg { margin: 0; font-size: 11.5px; line-height: 1.4; min-height: 1px; }
+.login-msg.err { color: var(--danger); }
+.login-msg.ok { color: var(--ok); }
+.login-msg:empty { display: none; }
+.login-or {
+  display: flex; align-items: center; gap: var(--sp-2);
+  color: var(--ink-faint); font-size: 11px; margin: 2px 0;
+}
+.login-or::before, .login-or::after {
+  content: ""; flex: 1; height: 1px; background: var(--border-soft);
+}
+.btn-social {
+  width: 100%; font-weight: 600;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn-social::before {
+  content: "G"; display: inline-grid; place-items: center;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: #fff; color: #4285F4; font-weight: 800; font-size: 11px;
+  border: 1px solid var(--border);
+}
+.link-btn {
+  background: transparent; border: 0; padding: 2px; cursor: pointer;
+  color: var(--accent-strong); font-size: 12px; text-decoration: underline;
+  text-align: center;
+}
+.link-btn:hover { color: var(--accent); }

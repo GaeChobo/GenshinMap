@@ -79,15 +79,50 @@ window.Cloud = (function () {
   }
 
   // ---- 로그인/로그아웃 ----
-  async function sendMagicLink(email) {
-    setStatus("메일 전송 중…");
-    const { error } = await sb.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: window.location.href.split("#")[0] },
+  function setMsg(text, kind) {
+    if (!els.msg) return;
+    els.msg.textContent = text || "";
+    els.msg.className = "login-msg" + (kind ? " " + kind : "");
+  }
+  const redirectTo = () => window.location.href.split("#")[0];
+
+  // 이메일+비밀번호 로그인
+  async function signInPassword(email, password) {
+    setMsg("로그인 중…");
+    const { error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) {
+      // 흔한 케이스 안내
+      const m = /Email not confirmed/i.test(error.message) ? "메일 인증이 필요해요. 받은 확인 메일의 링크를 눌러주세요."
+        : /Invalid login/i.test(error.message) ? "이메일 또는 비밀번호가 맞지 않아요."
+          : error.message;
+      setMsg(m, "err"); return;
+    }
+    setMsg("");
+  }
+  // 이메일+비밀번호 회원가입
+  async function signUp(email, password) {
+    if (password.length < 6) { setMsg("비밀번호는 6자 이상이어야 해요.", "err"); return; }
+    setMsg("가입 처리 중…");
+    const { data, error } = await sb.auth.signUp({
+      email, password, options: { emailRedirectTo: redirectTo() },
     });
-    if (error) { alert("로그인 메일 전송 실패: " + error.message); setStatus(""); return; }
-    alert(email + " 로 로그인 링크를 보냈어요.\n메일의 링크를 클릭하면 로그인됩니다.");
-    setStatus("메일 확인하세요");
+    if (error) { setMsg(error.message, "err"); return; }
+    // 이메일 확인이 켜져 있으면 세션이 아직 없음
+    if (data.user && !data.session) setMsg("확인 메일을 보냈어요. 메일의 링크를 누른 뒤 로그인하세요.", "ok");
+    else setMsg("가입 완료! 로그인되었습니다.", "ok");
+  }
+  // 매직링크(비밀번호 없이)
+  async function sendMagicLink(email) {
+    setMsg("메일 전송 중…");
+    const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: redirectTo() } });
+    if (error) { setMsg("메일 전송 실패: " + error.message, "err"); return; }
+    setMsg(email + " 로 로그인 링크를 보냈어요. 메일을 확인하세요.", "ok");
+  }
+  // 소셜 로그인(Google 등)
+  async function signInOAuth(provider) {
+    setMsg(provider + " 로 이동 중…");
+    const { error } = await sb.auth.signInWithOAuth({ provider, options: { redirectTo: redirectTo() } });
+    if (error) setMsg(error.message, "err");
   }
 
   async function logout() {
@@ -106,7 +141,12 @@ window.Cloud = (function () {
     els.status = document.getElementById("syncStatus");
     els.loginForm = document.getElementById("loginForm");
     els.loginEmail = document.getElementById("loginEmail");
-    els.loginSend = document.getElementById("loginSend");
+    els.loginPassword = document.getElementById("loginPassword");
+    els.loginSubmit = document.getElementById("loginSubmit");
+    els.signupBtn = document.getElementById("signupBtn");
+    els.googleBtn = document.getElementById("googleBtn");
+    els.magicBtn = document.getElementById("magicBtn");
+    els.msg = document.getElementById("loginMsg");
 
     if (!enabled) {
       // 설정 전: 로그인 버튼에 안내
@@ -122,14 +162,21 @@ window.Cloud = (function () {
 
     sb = supabase.createClient(cfg.url, cfg.anonKey);
 
+    const email = () => els.loginEmail.value.trim();
+    const pw = () => els.loginPassword.value;
+    const needEmail = () => { if (!email()) { setMsg("이메일을 입력하세요.", "err"); return false; } return true; };
+
     els.loginBtn.addEventListener("click", () => els.loginForm.classList.toggle("hidden"));
-    els.loginSend.addEventListener("click", () => {
-      const email = els.loginEmail.value.trim();
-      if (email) sendMagicLink(email);
+    els.loginSubmit.addEventListener("click", () => {
+      if (!needEmail()) return;
+      if (!pw()) { setMsg("비밀번호를 입력하세요.", "err"); return; }
+      signInPassword(email(), pw());
     });
-    els.loginEmail.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") els.loginSend.click();
-    });
+    els.signupBtn.addEventListener("click", () => { if (needEmail()) signUp(email(), pw()); });
+    els.magicBtn.addEventListener("click", () => { if (needEmail()) sendMagicLink(email()); });
+    els.googleBtn.addEventListener("click", () => signInOAuth("google"));
+    els.loginPassword.addEventListener("keydown", (e) => { if (e.key === "Enter") els.loginSubmit.click(); });
+    els.loginEmail.addEventListener("keydown", (e) => { if (e.key === "Enter") els.loginPassword.focus(); });
     els.logoutBtn.addEventListener("click", logout);
 
     // 세션 감지 (매직링크 복귀 포함)
