@@ -123,13 +123,19 @@ const PALETTE = [
   try { flattenLabels((await api("v1", "label/tree")).tree, labelMeta); } catch (e) {}
   try { flattenLabels((await api("v2", "label/tree")).tree, labelMeta); } catch (e) {}
 
-  // ── 지하 층(floor) 메타 ── point_group: 각 지하층 이름 + 그 층에 속한 point_ids
-  const floorReg = {};       // floor_id -> 층 이름
+  // ── 지하 층(floor) 메타 ── point_group: 각 지하층 이름 + 오버레이 이미지 + point_ids
+  const [oX, oY] = origin;
+  const floorReg = {};       // floor_id -> { n: 이름, o?: [url, top, left, bottom, right] (픽셀) }
   const pointToFloor = new Map(); // point_id -> floor_id (지하)
   try {
     for (const g of ((await api("v2", "point_group")).list || [])) {
       for (const f of (g.floors || [])) {
-        floorReg[f.id] = f.floor_name || ("층 " + f.id);
+        const e = { n: f.floor_name || ("층 " + f.id) };
+        const o = f.overlay;
+        if (o && o.url) e.o = [o.url,
+          Math.round((oY + o.l_y) * 10) / 10, Math.round((oX + o.l_x) * 10) / 10,
+          Math.round((oY + o.r_y) * 10) / 10, Math.round((oX + o.r_x) * 10) / 10];
+        floorReg[f.id] = e;
         for (const pid of (f.point_ids || [])) pointToFloor.set(pid, f.id);
       }
     }

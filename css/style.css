@@ -1158,3 +1158,7 @@ label { cursor: pointer; }
 }
 .popup-level.under { color: var(--accent-strong, #2a6b7c); }
 .popup-level.surface { color: var(--ink-faint); }
+
+/* 지하 모드: 지상 타일을 어둡게 낮춰 지하 오버레이가 도드라지게 */
+#map.ug-mode .leaflet-tile-pane { opacity: .32; transition: opacity .25s var(--ease); }
+#map .leaflet-tile-pane { transition: opacity .25s var(--ease); }

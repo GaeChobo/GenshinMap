@@ -34,6 +34,8 @@ const state = {
   leafletById: {},
   slicesData: {},           // mapId -> { rows, cols, sliceW, sliceH, grid }
   sliceUpdate: null,        // 현재 슬라이스 맵의 갱신 함수
+  ugLayer: null,            // 지하 오버레이 이미지 레이어
+  ugUpdate: null,           // 지하 오버레이 갱신(뷰포트 컬링) 함수
   editingId: null,          // 관리자 모드에서 편집 중인 커스텀 마커 id
   areaSel: store.get(AREA_KEY, {}), // mapId -> 선택된 area_id (0/없음 = 전체)
   levelSel: store.get(LEVEL_KEY, {}), // mapId -> "all" | "surface" | "under"
@@ -111,7 +113,8 @@ function areaMarkers(mapId) {
 // ===== 지상/지하 (층) =====
 // 마커에 m.f(floor_id)가 있으면 지하(해당 층 이름), 없으면 지상.
 function isUnderground(m) { return m.f != null; }
-function floorName(mapId, f) { return (state.floors[mapId] || {})[f] || "지하"; }
+function floorEntry(mapId, f) { return (state.floors[mapId] || {})[f] || null; }
+function floorName(mapId, f) { const e = floorEntry(mapId, f); return (e && e.n) || "지하"; }
 function hasUnderground(mapId) {
   const fl = state.floors[mapId];
   return !!(fl && Object.keys(fl).length);
@@ -156,6 +159,7 @@ function initMap() {
   state.map.on("click", (e) => { if (state.admin && !state.editingId) addCustomMarker(e.latlng); });
   state.map.on("moveend", () => {
     if (state.sliceUpdate) state.sliceUpdate(); // 슬라이스 맵: 보이는 조각만 로드
+    if (state.ugUpdate) state.ugUpdate();       // 지하 모드: 보이는 지하 오버레이만 로드
     renderMarkers();                             // 보이는 마커만 다시 그림
   });
 }
@@ -188,6 +192,28 @@ function makeSliceLayer(mapId) {
       } else if (!inView && shown[key]) {
         group.removeLayer(shown[key]); delete shown[key];
       }
+    }
+  };
+  return group;
+}
+
+// 지하 오버레이 레이어 — "지하" 필터일 때만, 보이는 층 이미지만 로드(뷰포트 컬링).
+// floors[fid].o = [url, top(lat), left(lng), bottom(lat), right(lng)] (픽셀좌표)
+function makeUndergroundLayer(mapId) {
+  const floors = state.floors[mapId] || {};
+  const group = L.layerGroup();
+  const shown = {};
+  state.ugUpdate = function () {
+    const on = currentLevel(mapId) === "under";
+    document.getElementById("map").classList.toggle("ug-mode", on); // 지상 타일 흐리게
+    if (!on) { if (Object.keys(shown).length) { group.clearLayers(); for (const k in shown) delete shown[k]; } return; }
+    const vb = state.map.getBounds().pad(0.5);
+    for (const fid in floors) {
+      const o = floors[fid].o; if (!o) continue;
+      const b = L.latLngBounds([o[1], o[2]], [o[3], o[4]]);
+      const inView = vb.intersects(b);
+      if (inView && !shown[fid]) shown[fid] = L.imageOverlay(o[0], b).addTo(group);
+      else if (!inView && shown[fid]) { group.removeLayer(shown[fid]); delete shown[fid]; }
     }
   };
   return group;
@@ -274,7 +300,9 @@ async function selectMap(mapId) {
   rebuildActive();           // 렌더 캐시 — fitBounds가 유발하는 moveend 렌더 전에 준비
 
   if (state.overlay) { state.overlay.remove(); state.overlay = null; }
-  state.sliceUpdate = null;
+  if (state.ugLayer) { state.ugLayer.remove(); state.ugLayer = null; }
+  state.sliceUpdate = null; state.ugUpdate = null;
+  document.getElementById("map").classList.remove("ug-mode");
   if (def.kind === "tiles") {
     // 호요랩 타일: 표기 N(N{-z}, 다단계 피라미드) 또는 P(P{z}, 최고해상도만) 지원
     const zoomStyle = def.zoomStyle || "P";
@@ -296,6 +324,8 @@ async function selectMap(mapId) {
   } else {
     state.overlay = L.imageOverlay(def.image, bounds).addTo(state.map);
   }
+  // 지하 오버레이 레이어(지하 있는 지도만) — 타일 위, 마커 아래
+  if (hasUnderground(mapId)) state.ugLayer = makeUndergroundLayer(mapId).addTo(state.map);
   state.map.setMaxBounds(L.latLngBounds(bounds).pad(0.5));
   // 콘텐츠(마커) 영역으로 맞춤 — 빈 여백 로딩을 줄이고 화면도 딱 맞음
   state.map.setMinZoom(-8); // 잠시 풀어서 fitBounds가 자유롭게 맞추게
@@ -318,6 +348,7 @@ async function selectMap(mapId) {
   renderFilters();
   renderMarkers();
   updateStats();
+  if (state.ugUpdate) state.ugUpdate(); // 지하 모드로 시작한 경우 오버레이 표시
 }
 
 // ===== 마커 =====
@@ -709,6 +740,7 @@ function boot() {
     store.set(LEVEL_KEY, state.levelSel);
     renderLevelFilter(state.currentMapId);
     rebuildActive();
+    if (state.ugUpdate) state.ugUpdate(); // 지하 오버레이 표시/숨김 + 지상 타일 흐리게
     renderFilters(); renderMarkers(); updateStats();
   });
 
