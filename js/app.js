@@ -418,7 +418,7 @@ function popupHtml(m) {
     h += '<span class="renew-note">🔄 재생성 자원 (수집 집계 제외)</span>';
   } else {
     h += '<button class="done-btn ' + (done ? "is-done" : "") + '" onclick="__toggleDone(\'' + m.id + '\')">' +
-      (done ? "↩ 되돌리기" : "✓ 먹었음") + "</button>";
+      (done ? "완료" : "미완료") + "</button>";
   }
   if (state.admin && isCustom(m.id)) {
     h += '<button class="edit-btn" onclick="__editCustom(\'' + m.id + '\')">편집</button>';
@@ -445,7 +445,7 @@ function addIndividual(m) {
       if (c) { c.lat = Math.round(ll.lat * 10) / 10; c.lng = Math.round(ll.lng * 10) / 10; store.set(CUSTOM_KEY, state.custom); }
     });
   }
-  cm.bindPopup(() => popupHtml(m));
+  cm.bindPopup(() => popupHtml(m), { maxWidth: 340, minWidth: 300, autoPanPadding: [24, 24], keepInView: true });
   cm.addTo(state.layer);
   state.leafletById[m.id] = cm;
 }

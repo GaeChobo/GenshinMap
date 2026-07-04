@@ -767,7 +767,12 @@ label { cursor: pointer; }
   box-shadow: var(--shadow-pop) !important;
   padding: 0 !important;
 }
-.leaflet-popup-content { margin: 0 !important; padding: var(--sp-3) var(--sp-3) var(--sp-2) !important; min-width: 204px; }
+.leaflet-popup-content {
+  margin: 0 !important; padding: var(--sp-3) var(--sp-3) var(--sp-2) !important;
+  width: 308px !important; min-width: 300px;
+  max-height: min(66vh, 560px); overflow-y: auto; overflow-x: hidden;
+  overscroll-behavior: contain;
+}
 .leaflet-popup-tip { background: var(--panel-solid) !important; border: 1px solid var(--border) !important; box-shadow: none !important; }
 .leaflet-popup-close-button { color: var(--ink-faint) !important; font-size: 18px !important; padding: 6px 8px 0 0 !important; }
 .leaflet-popup-close-button:hover { color: var(--ink) !important; }
@@ -816,19 +821,22 @@ label { cursor: pointer; }
   padding-top: var(--sp-2);
   border-top: 1px solid var(--border-soft);
 }
+/* 상태 토글: 기본 '미완료'(중립 아웃라인) → 누르면 '완료'(초록 채움) */
 .done-btn {
   flex: 1;
-  color: var(--on-metal);
-  background: linear-gradient(180deg, var(--metal-bright), var(--metal));
-  border-color: var(--metal);
+  color: var(--ink-soft);
+  background: var(--panel-sunken);
+  border-color: var(--border);
   font-weight: 700;
 }
+.done-btn::before { content: "○ "; color: var(--ink-faint); font-weight: 700; }
+.done-btn:hover { border-color: var(--accent); color: var(--accent-strong); }
 .done-btn.is-done {
-  color: var(--accent-strong);
-  background: var(--accent-tint);
-  border-color: var(--accent);
+  color: var(--on-metal);
+  background: linear-gradient(180deg, var(--accent), var(--accent-strong));
+  border-color: var(--accent-strong);
 }
-.done-btn.is-done::before { content: "✓ "; }
+.done-btn.is-done::before { content: "✓ "; color: #fff; }
 .del-btn {
   color: var(--danger);
   background: transparent;
@@ -1068,7 +1076,7 @@ label { cursor: pointer; }
 .popup-reviews-head { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; letter-spacing: .04em; color: var(--ink-soft); margin-bottom: var(--sp-2); text-transform: uppercase; }
 .popup-reviews-head .count { color: var(--ink-faint); font-weight: 600; }
 
-.review-list { list-style: none; margin: 0; padding: 0 2px 0 0; display: flex; flex-direction: column; gap: var(--sp-2); max-height: 140px; overflow-y: auto; overscroll-behavior: contain; }
+.review-list { list-style: none; margin: 0; padding: 0 2px 0 0; display: flex; flex-direction: column; gap: var(--sp-2); max-height: 240px; overflow-y: auto; overscroll-behavior: contain; }
 .review-item { display: flex; gap: var(--sp-2); }
 .review-avatar {
   width: 22px; height: 22px; flex: 0 0 auto;
