@@ -1162,3 +1162,19 @@ label { cursor: pointer; }
 /* 지하 모드: 지상 타일을 어둡게 낮춰 지하 오버레이가 도드라지게 */
 #map.ug-mode .leaflet-tile-pane { opacity: .32; transition: opacity .25s var(--ease); }
 #map .leaflet-tile-pane { transition: opacity .25s var(--ease); }
+
+/* 리뷰 — 추가 상태(빈/로딩/로그인안내/삭제) */
+.review-empty, .review-login-hint {
+  font-size: 11.5px; color: var(--ink-faint);
+  padding: 6px 2px; line-height: 1.5;
+}
+.review-login-hint { margin-top: var(--sp-2); }
+.review-form-wrap:empty { display: none; }
+.review-del {
+  margin-left: auto; flex: 0 0 auto;
+  width: 18px; height: 18px; padding: 0;
+  display: grid; place-items: center;
+  font-size: 11px; line-height: 1;
+  color: var(--ink-faint); background: transparent; border: 0; cursor: pointer;
+}
+.review-del:hover { color: var(--danger); }

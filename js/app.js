@@ -157,6 +157,7 @@ function initMap() {
   });
   state.layer = L.layerGroup().addTo(state.map);
   state.map.on("click", (e) => { if (state.admin && !state.editingId) addCustomMarker(e.latlng); });
+  state.map.on("popupopen", (e) => { if (window.Reviews) Reviews.mount(e.popup.getElement()); });
   state.map.on("moveend", () => {
     if (state.sliceUpdate) state.sliceUpdate(); // 슬라이스 맵: 보이는 조각만 로드
     if (state.ugUpdate) state.ugUpdate();       // 지하 모드: 보이는 지하 오버레이만 로드
@@ -417,7 +418,10 @@ function popupHtml(m) {
     h += '<button class="edit-btn" onclick="__editCustom(\'' + m.id + '\')">편집</button>';
     h += '<button class="del-btn" onclick="__deleteCustom(\'' + m.id + '\')">삭제</button>';
   }
-  return h + "</div>";
+  h += "</div>";
+  // 리뷰/댓글 — 커스텀(내 브라우저 전용) 마커 제외한 공용 마커에만
+  if (!isCustom(m.id) && window.Reviews) h += Reviews.sectionHtml(state.currentMapId, m.id);
+  return h;
 }
 const CLUSTER_CELL = 46;   // 클러스터 격자 크기(화면 픽셀). 이 안의 같은 카테고리는 묶임
 const CLUSTER_CAP = 15000; // 화면에 이보다 많으면 렌더 생략 + "확대" 힌트 (안전장치)

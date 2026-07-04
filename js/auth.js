@@ -146,7 +146,12 @@ window.Cloud = (function () {
     });
   }
 
-  return { init, scheduleSync, get enabled() { return enabled; }, get user() { return user; } };
+  return {
+    init, scheduleSync,
+    get enabled() { return enabled; },
+    get user() { return user; },
+    get client() { return sb; }, // 리뷰 등 다른 모듈이 재사용
+  };
 })();
 
 // app.js 로드 후(이 스크립트가 body 끝에 있으므로 DOM 준비됨) 초기화
