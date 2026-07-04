@@ -40,7 +40,35 @@ window.Reviews = (function () {
       if (error.code === "PGRST205") return { missing: true, rows: [] }; // 테이블 미생성
       throw error;
     }
-    return { rows: data || [] };
+    const rows = data || [];
+    await attachVotes(rows); // 투표수·내 투표·BEST 계산 + 정렬
+    return { rows };
+  }
+  // 각 리뷰에 유용/비추천 수, 내 투표, BEST 여부를 붙이고 점수순 정렬
+  async function attachVotes(rows) {
+    if (!rows.length) return;
+    const ids = rows.map((r) => r.id);
+    const uid = currentUser() && currentUser().id;
+    let votes = [];
+    try {
+      const { data, error } = await sb().from("review_votes").select("review_id,user_id,vote").in("review_id", ids);
+      if (error) { if (error.code !== "PGRST205") throw error; } // 투표 테이블 없으면 0표로 진행
+      votes = data || [];
+    } catch (e) { votes = []; }
+    const m = {};
+    for (const r of rows) m[r.id] = { up: 0, down: 0, mine: 0 };
+    for (const v of votes) {
+      const c = m[v.review_id]; if (!c) continue;
+      if (v.vote === 1) c.up++; else if (v.vote === -1) c.down++;
+      if (uid && v.user_id === uid) c.mine = v.vote;
+    }
+    let bestId = null, bestScore = 1; // 유용 2표 이상 & 최고점만 BEST
+    for (const r of rows) {
+      const c = m[r.id]; r._up = c.up; r._down = c.down; r._mine = c.mine; r._score = c.up - c.down;
+      if (c.up >= 2 && r._score > bestScore) { bestScore = r._score; bestId = r.id; }
+    }
+    rows.forEach((r) => (r._best = r.id === bestId));
+    rows.sort((a, b) => (b._best - a._best) || (b._score - a._score) || (new Date(b.created_at) - new Date(a.created_at)));
   }
   async function add(mapId, markerId, text, imageUrl) {
     const u = currentUser();
@@ -54,6 +82,26 @@ window.Reviews = (function () {
   async function remove(id) {
     const { error } = await sb().from("reviews").delete().eq("id", id);
     if (error) throw error;
+  }
+  // 투표: value = 1(유용) | -1(비추천). 같은 값 다시 → unvote로 취소.
+  async function vote(reviewId, value) {
+    const u = currentUser(); if (!u) throw new Error("로그인이 필요해요.");
+    const { error } = await sb().from("review_votes")
+      .upsert({ review_id: reviewId, user_id: u.id, vote: value }, { onConflict: "review_id,user_id" });
+    if (error) throw error;
+  }
+  async function unvote(reviewId) {
+    const u = currentUser(); if (!u) return;
+    const { error } = await sb().from("review_votes").delete().eq("review_id", reviewId).eq("user_id", u.id);
+    if (error) throw error;
+  }
+  async function report(reviewId) {
+    const u = currentUser(); if (!u) { alert("신고하려면 로그인하세요."); return false; }
+    const reason = prompt("신고 사유(선택 입력):", "");
+    if (reason === null) return false; // 취소
+    const { error } = await sb().from("review_reports").insert({ review_id: reviewId, user_id: u.id, reason });
+    if (error) { if (error.code === "PGRST205") { alert("신고 기능 준비 중입니다."); return false; } throw error; }
+    return true;
   }
 
   // ---- 사진 업로드 (Supabase Storage: review-photos 버킷) ----
@@ -85,12 +133,15 @@ window.Reviews = (function () {
 
   // ---- 렌더 ----
   function itemHtml(r) {
-    const mine = currentUser() && r.user_id === currentUser().id;
+    const me = currentUser();
+    const mine = me && r.user_id === me.id;
+    const up = r._up || 0, down = r._down || 0, my = r._mine || 0;
     return (
-      '<div class="review-item" data-id="' + r.id + '">' +
+      '<div class="review-item' + (r._best ? " is-best" : "") + '" data-id="' + r.id + '">' +
       '<div class="review-avatar">' + esc(initial(r.name)) + "</div>" +
       '<div class="review-body">' +
       '<div class="review-meta">' +
+      (r._best ? '<span class="review-best">BEST</span>' : "") +
       '<span class="review-name">' + esc(r.name || "익명") + "</span>" +
       '<span class="review-time">' + timeAgo(r.created_at) + "</span>" +
       (mine ? '<button class="review-del" title="삭제" data-id="' + r.id + '">✕</button>' : "") +
@@ -98,6 +149,11 @@ window.Reviews = (function () {
       '<div class="review-text">' + esc(r.text) + "</div>" +
       (r.image_url ? '<a class="review-photo" href="' + esc(r.image_url) + '" target="_blank" rel="noopener">' +
         '<img src="' + esc(r.image_url) + '" alt="첨부 사진" loading="lazy"></a>' : "") +
+      '<div class="review-actions">' +
+      '<button class="rv-up' + (my === 1 ? " on" : "") + '" data-id="' + r.id + '" title="유용해요">👍 <b>' + up + "</b></button>" +
+      '<button class="rv-down' + (my === -1 ? " on" : "") + '" data-id="' + r.id + '" title="별로예요">👎 <b>' + down + "</b></button>" +
+      (mine ? "" : '<button class="rv-report" data-id="' + r.id + '" title="신고">🚩</button>') +
+      "</div>" +
       "</div></div>"
     );
   }
@@ -195,17 +251,41 @@ window.Reviews = (function () {
       }
     }
 
-    // 삭제(본인 것) — 위임
+    // 삭제·투표·신고 — 위임
     listEl.addEventListener("click", async (e) => {
-      const btn = e.target.closest(".review-del");
-      if (!btn) return;
-      if (!confirm("이 리뷰를 삭제할까요?")) return;
-      try {
-        await remove(btn.dataset.id);
-        const item = btn.closest(".review-item");
-        if (item) item.remove();
-        if (!listEl.querySelector(".review-item")) renderList(listEl, []);
-      } catch (err) { alert("삭제 실패: " + (err.message || err)); }
+      const del = e.target.closest(".review-del");
+      const up = e.target.closest(".rv-up");
+      const down = e.target.closest(".rv-down");
+      const rep = e.target.closest(".rv-report");
+
+      if (del) {
+        if (!confirm("이 리뷰를 삭제할까요?")) return;
+        try {
+          await remove(del.dataset.id);
+          const item = del.closest(".review-item");
+          if (item) item.remove();
+          if (!listEl.querySelector(".review-item")) renderList(listEl, []);
+        } catch (err) { alert("삭제 실패: " + (err.message || err)); }
+        return;
+      }
+      if (up || down) {
+        if (!currentUser()) { alert("로그인하면 투표할 수 있어요."); return; }
+        const btn = up || down, id = btn.dataset.id, val = up ? 1 : -1;
+        btn.disabled = true;
+        try {
+          if (btn.classList.contains("on")) await unvote(id); else await vote(id, val);
+          const res = await list(mapId, markerId); renderList(listEl, res.rows); // 다시 집계·정렬
+        } catch (err) {
+          const s = (err.message || "") + (err.code || "");
+          alert(/PGRST205|review_votes/i.test(s) ? "투표 기능 준비 중입니다." : "투표 실패: " + (err.message || err));
+          btn.disabled = false;
+        }
+        return;
+      }
+      if (rep) {
+        try { if (await report(rep.dataset.id)) alert("신고했어요. 감사합니다."); }
+        catch (err) { alert("신고 실패: " + (err.message || err)); }
+      }
     });
   }
 

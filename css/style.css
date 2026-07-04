@@ -1260,3 +1260,24 @@ label { cursor: pointer; }
 .review-send { min-height: 40px; font-size: 13px; }
 .review-empty, .review-login-hint { font-size: 12.5px; padding: 8px 2px; }
 .review-preview img { max-height: 150px; }
+
+/* 리뷰 투표·BEST·신고 */
+.review-item.is-best { background: var(--accent-tint); border-radius: var(--r-sm); padding: 6px; margin: -2px 0; }
+.review-best {
+  font-size: 9px; font-weight: 800; letter-spacing: .04em;
+  color: var(--on-metal); background: linear-gradient(180deg, var(--metal-bright), var(--metal));
+  padding: 1px 5px; border-radius: var(--r-pill);
+}
+.review-actions { display: flex; align-items: center; gap: 6px; margin-top: 5px; }
+.review-actions button {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: 11px; line-height: 1; padding: 4px 8px;
+  color: var(--ink-soft); background: var(--panel-sunken);
+  border: 1px solid var(--border); border-radius: var(--r-pill); cursor: pointer;
+}
+.review-actions button b { font-variant-numeric: tabular-nums; }
+.review-actions button:hover { border-color: var(--accent); }
+.rv-up.on { color: var(--on-metal); background: linear-gradient(180deg, var(--accent), var(--accent-strong)); border-color: var(--accent-strong); }
+.rv-down.on { color: var(--on-metal); background: var(--danger); border-color: var(--danger); }
+.rv-report { margin-left: auto; }
+.rv-report:hover { color: var(--danger); }
