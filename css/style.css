@@ -1102,3 +1102,59 @@ label { cursor: pointer; }
 #adminEditActions { display: flex; gap: var(--sp-2); }
 #adminEditActions button { flex: 1; }
 .mk-cluster-host { line-height: 0; }
+
+/* ---------------------------------------------------------------------------
+   14. 지상/지하 (층) 표시·필터
+   ------------------------------------------------------------------------- */
+/* 사이드바 세그먼트 토글 */
+.level-filter {
+  display: flex;
+  gap: 4px;
+  margin-bottom: var(--sp-3);
+  padding: 4px;
+  background: var(--panel-sunken);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+}
+.level-filter button {
+  flex: 1;
+  padding: 7px 4px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  background: transparent;
+  border: 0;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.level-filter button:hover { color: var(--ink); background: var(--panel); }
+.level-filter button.active {
+  color: var(--on-metal);
+  background: linear-gradient(180deg, var(--metal-bright), var(--metal));
+  box-shadow: var(--shadow-sm);
+}
+
+/* 지하 마커 배지 표식 (물방울 우상단 작은 삼각) */
+.mk-badge { position: relative; }
+.mk-ug {
+  position: absolute;
+  top: -4px; right: -4px;
+  width: 14px; height: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 8px; line-height: 1;
+  color: #fff;
+  background: var(--accent-strong, #2a6b7c);
+  border: 1.5px solid var(--panel-solid, #fff);
+  border-radius: 50%;
+  box-shadow: 0 1px 2px rgba(0,0,0,.4);
+}
+
+/* 팝업 지상/지하 라벨 */
+.popup-level {
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.popup-level.under { color: var(--accent-strong, #2a6b7c); }
+.popup-level.surface { color: var(--ink-faint); }

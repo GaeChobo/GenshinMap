@@ -123,15 +123,34 @@ const PALETTE = [
   try { flattenLabels((await api("v1", "label/tree")).tree, labelMeta); } catch (e) {}
   try { flattenLabels((await api("v2", "label/tree")).tree, labelMeta); } catch (e) {}
 
+  // ── 지하 층(floor) 메타 ── point_group: 각 지하층 이름 + 그 층에 속한 point_ids
+  const floorReg = {};       // floor_id -> 층 이름
+  const pointToFloor = new Map(); // point_id -> floor_id (지하)
+  try {
+    for (const g of ((await api("v2", "point_group")).list || [])) {
+      for (const f of (g.floors || [])) {
+        floorReg[f.id] = f.floor_name || ("층 " + f.id);
+        for (const pid of (f.point_ids || [])) pointToFloor.set(pid, f.id);
+      }
+    }
+  } catch (e) {}
+
   // ── 마커(포인트) ── point/list 는 이미지·타일 맵 모두 동작
   const points = (await api("v1", "point/list")).point_list || [];
   const [ox, oy] = origin;
-  const markers = points.map((p) => ({
-    id: "h" + p.id, cat: p.label_id,
-    lat: Math.round((oy + p.y_pos) * 10) / 10,
-    lng: Math.round((ox + p.x_pos) * 10) / 10,
-  }));
-  console.log(`  마커 ${markers.length}개`);
+  const markers = points.map((p) => {
+    const m = {
+      id: "h" + p.id, cat: p.label_id,
+      lat: Math.round((oy + p.y_pos) * 10) / 10,
+      lng: Math.round((ox + p.x_pos) * 10) / 10,
+    };
+    if (p.area_id) m.a = p.area_id;                    // 지역(나라)
+    const fid = pointToFloor.get(p.id);
+    if (fid != null) m.f = fid;                        // 지하 층
+    return m;
+  });
+  const ugN = markers.filter((m) => m.f != null).length;
+  console.log(`  마커 ${markers.length}개 (지하 ${ugN})`);
 
   // 등장한 카테고리만, 많은 순으로 색 배정
   const present = {};
@@ -150,6 +169,16 @@ const PALETTE = [
   fs.writeFileSync(path.join(ROOT, `data/markers/${localId}.js`),
     `registerMarkers("${localId}", ${JSON.stringify(markers)});\n`);
   console.log(`  data/categories/${localId}.js, data/markers/${localId}.js 생성`);
+
+  // 사용된 지하 층만 registry로 저장 (있을 때만)
+  const usedFloors = {};
+  for (const m of markers) if (m.f != null) usedFloors[m.f] = floorReg[m.f];
+  if (Object.keys(usedFloors).length) {
+    fs.mkdirSync(path.join(ROOT, "data/floors"), { recursive: true });
+    fs.writeFileSync(path.join(ROOT, `data/floors/${localId}.js`),
+      `registerFloors("${localId}", ${JSON.stringify(usedFloors)});\n`);
+    console.log(`  data/floors/${localId}.js 생성 (지하 층 ${Object.keys(usedFloors).length}종)`);
+  }
 
   if (imgNote) console.log("\n" + imgNote);
   console.log("\n✅ 완료! data/maps.js 에 아래를 추가하세요:");

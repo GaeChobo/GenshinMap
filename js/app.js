@@ -17,6 +17,7 @@ const CUSTOM_KEY = "gmap_custom_v1";
 const HIDDEN_KEY = "gmap_hidden_v3"; // v3: 기본 필터를 워프 지점만 켜기로 변경
 const HIDECOMPLETE_KEY = "gmap_hidecomplete_v1";
 const AREA_KEY = "gmap_area_v1"; // 지도별 선택된 지역(나라). 0 = 전체
+const LEVEL_KEY = "gmap_level_v1"; // 지도별 지상/지하 필터. all | surface | under
 
 // ===== 상태 =====
 const state = {
@@ -35,7 +36,9 @@ const state = {
   sliceUpdate: null,        // 현재 슬라이스 맵의 갱신 함수
   editingId: null,          // 관리자 모드에서 편집 중인 커스텀 마커 id
   areaSel: store.get(AREA_KEY, {}), // mapId -> 선택된 area_id (0/없음 = 전체)
-  active: [],               // 현재 지도+지역의 렌더 대상 마커 캐시 (moveend 성능)
+  levelSel: store.get(LEVEL_KEY, {}), // mapId -> "all" | "surface" | "under"
+  floors: {},               // mapId -> { floorId: 층이름 } (지하)
+  active: [],               // 현재 지도+지역+층의 렌더 대상 마커 캐시 (moveend 성능)
 };
 state.hidden = (() => {
   const raw = store.get(HIDDEN_KEY, {});
@@ -50,6 +53,7 @@ function saveHidden() {
 window.registerMarkers = (mapId, arr) => { state.baseMarkers[mapId] = arr; };
 window.registerCategories = (mapId, obj) => { state.cats[mapId] = obj; };
 window.registerSlices = (mapId, obj) => { state.slicesData[mapId] = obj; };
+window.registerFloors = (mapId, obj) => { state.floors[mapId] = obj; };
 
 // ===== 데이터 로딩 =====
 function loadScript(src) {
@@ -66,6 +70,7 @@ async function ensureLoaded(mapId) {
     loadScript("data/markers/" + mapId + ".js"),
   ];
   if (def && def.kind === "slices") loads.push(loadScript("data/slices/" + mapId + ".js"));
+  loads.push(loadScript("data/floors/" + mapId + ".js")); // 지하 층 정보(없으면 무시)
   await Promise.all(loads);
   state.baseMarkers[mapId] = state.baseMarkers[mapId] || [];
   state.cats[mapId] = state.cats[mapId] || {};
@@ -103,15 +108,31 @@ function areaMarkers(mapId) {
   const all = markersFor(mapId);
   return a ? all.filter((m) => m.a === a) : all;
 }
-// 렌더 대상 캐시 재빌드 — 지도/지역/커스텀이 바뀔 때만 호출.
-// (moveend마다 8만개 전체를 순회하면 끊김 → 선택 지역 마커만 미리 걸러둠)
+// ===== 지상/지하 (층) =====
+// 마커에 m.f(floor_id)가 있으면 지하(해당 층 이름), 없으면 지상.
+function isUnderground(m) { return m.f != null; }
+function floorName(mapId, f) { return (state.floors[mapId] || {})[f] || "지하"; }
+function hasUnderground(mapId) {
+  const fl = state.floors[mapId];
+  return !!(fl && Object.keys(fl).length);
+}
+function currentLevel(mapId) { return state.levelSel[mapId] || "all"; } // all|surface|under
+function passLevel(mapId, m) {
+  const lv = currentLevel(mapId);
+  if (lv === "all") return true;
+  return lv === "under" ? isUnderground(m) : !isUnderground(m);
+}
+
+// 렌더 대상 캐시 재빌드 — 지도/지역/층/커스텀이 바뀔 때만 호출.
+// (moveend마다 8만개 전체를 순회하면 끊김 → 선택 조건 통과 마커만 미리 걸러둠)
 function rebuildActive() {
   const mapId = state.currentMapId;
   if (!mapId) { state.active = []; return; }
   const a = currentArea();
   const base = state.baseMarkers[mapId] || [];
   const cust = state.custom.filter((m) => m.map === mapId);
-  state.active = (a ? base.filter((m) => m.a === a) : base).concat(cust);
+  const pass = (m) => (!a || m.a === a) && passLevel(mapId, m);
+  state.active = base.filter(pass).concat(cust); // 커스텀은 지역/층 무관하게 항상 표시
 }
 function catsFor(mapId) { return state.cats[mapId] || {}; }
 function catDef(mapId, id) { return catsFor(mapId)[id] || { name: "카테고리 " + id, group: "기타", color: "#b98ce0" }; }
@@ -189,6 +210,17 @@ function populateAreaSelect(mapId) {
   sel.value = String(state.areaSel[mapId] || 0);
   sel.classList.remove("hidden");
 }
+// 지상/지하 필터 UI — 지하 마커가 있는 지도에서만 표시
+function renderLevelFilter(mapId) {
+  const el = document.getElementById("levelFilter");
+  if (!el) return;
+  if (!hasUnderground(mapId)) { el.classList.add("hidden"); return; }
+  const cur = currentLevel(mapId);
+  for (const btn of el.querySelectorAll("button"))
+    btn.classList.toggle("active", btn.dataset.level === cur);
+  el.classList.remove("hidden");
+}
+
 // 선택 지역으로 화면 맞춤 (minZoom은 대륙 기준 유지 → 언제든 축소 가능)
 function fitToArea() {
   const mapId = state.currentMapId;
@@ -238,6 +270,7 @@ async function selectMap(mapId) {
     saveHidden();
   }
   populateAreaSelect(mapId); // 지역 선택기(기본 나라 설정 포함) — 필터/렌더 전에
+  renderLevelFilter(mapId);  // 지상/지하 필터 (지하 있는 지도만 표시)
   rebuildActive();           // 렌더 캐시 — fitBounds가 유발하는 moveend 렌더 전에 준비
 
   if (state.overlay) { state.overlay.remove(); state.overlay = null; }
@@ -296,16 +329,18 @@ function markerVisible(m) {
 }
 // 카테고리별 아이콘(호요랩 CDN). 같은 카테고리는 재사용(성능).
 const iconCache = {};
-function leafIcon(cat) {
+function leafIcon(cat, underground) {
   const c = catDef(state.currentMapId, cat);
-  const key = c.icon || ("dot:" + c.color);
+  const key = (c.icon || ("dot:" + c.color)) + (underground ? "|ug" : "");
   if (!iconCache[key]) {
     const inner = c.icon
       ? '<img src="' + c.icon + '" alt="" loading="lazy">'
       : '<span class="mk-dot" style="background:' + c.color + '"></span>';
+    // 지하 마커는 물방울 배지에 지하 표식(🔻)을 덧붙여 한눈에 구분
+    const ugMark = underground ? '<span class="mk-ug" title="지하">▼</span>' : "";
     iconCache[key] = L.divIcon({
-      className: "mk pin-precise", // 물방울 끝이 정확한 좌표를 가리킴
-      html: '<div class="mk-badge" style="border-color:' + c.color + '">' + inner + "</div>",
+      className: "mk pin-precise" + (underground ? " is-under" : ""), // 물방울 끝이 정확한 좌표를 가리킴
+      html: '<div class="mk-badge" style="border-color:' + c.color + '">' + inner + ugMark + "</div>",
       iconSize: [30, 38], iconAnchor: [15, 38], popupAnchor: [0, -34],
     });
   }
@@ -333,6 +368,12 @@ function popupHtml(m) {
   const iconImg = c.icon ? '<img class="popup-icon" src="' + c.icon + '" alt="">' : "";
   let h = '<div class="popup-title">' + iconImg + esc(title) + "</div>" +
     '<div class="popup-cat" style="color:' + c.color + '">● ' + esc(c.name) + "</div>";
+  // 지상/지하 표시
+  if (isUnderground(m)) {
+    h += '<div class="popup-level under">🔻 지하 · ' + esc(floorName(state.currentMapId, m.f)) + "</div>";
+  } else if (hasUnderground(state.currentMapId)) {
+    h += '<div class="popup-level surface">🔼 지상</div>';
+  }
   if (m.desc) h += '<div class="popup-desc">' + esc(m.desc) + "</div>";
   h += '<div class="popup-actions">';
   if (isRenewable(state.currentMapId, m.cat)) {
@@ -353,7 +394,7 @@ const CLUSTER_CAP = 15000; // 화면에 이보다 많으면 렌더 생략 + "확
 function addIndividual(m) {
   const custom = isCustom(m.id);
   const cm = L.marker([m.lat, m.lng], {
-    icon: leafIcon(m.cat), opacity: state.done[m.id] ? 0.4 : 1, keyboard: false,
+    icon: leafIcon(m.cat, isUnderground(m)), opacity: state.done[m.id] ? 0.4 : 1, keyboard: false,
     draggable: state.admin && custom, // 관리자 모드: 커스텀 마커 드래그 이동
   });
   if (state.admin && custom) {
@@ -482,9 +523,12 @@ function cancelEdit() {
 function groupsFor(mapId) {
   const cats = catsFor(mapId);
   const present = {};
-  const a = mapId === state.currentMapId ? currentArea() : 0; // 현재 지도면 선택 지역만 집계
+  const cur = mapId === state.currentMapId; // 현재 지도면 선택 지역/층만 집계
+  const a = cur ? currentArea() : 0;
   for (const m of markersFor(mapId)) {
-    if (a && m.a !== a && !isCustom(m.id)) continue;
+    if (isCustom(m.id)) { present[m.cat] = (present[m.cat] || 0) + 1; continue; }
+    if (a && m.a !== a) continue;
+    if (cur && !passLevel(mapId, m)) continue;
     present[m.cat] = (present[m.cat] || 0) + 1;
   }
   const groups = {};
@@ -576,7 +620,7 @@ function updateStats() {
   const hidden = hiddenSet(state.currentMapId);
   // 완료 집계는 1회성 수집(상자·눈동자 등)만. 리젠 자원(광물·적 등)은 제외.
   const list = markersFor(state.currentMapId)
-    .filter((m) => inArea(m) && !hidden.has(m.cat) && !isRenewable(state.currentMapId, m.cat));
+    .filter((m) => inArea(m) && passLevel(state.currentMapId, m) && !hidden.has(m.cat) && !isRenewable(state.currentMapId, m.cat));
   const done = list.filter((m) => state.done[m.id]).length;
   const el = document.getElementById("stats");
   el.textContent = "수집 " + done + " / " + list.length;
@@ -655,6 +699,16 @@ function boot() {
     store.set(AREA_KEY, state.areaSel);
     rebuildActive();
     fitToArea();
+    renderFilters(); renderMarkers(); updateStats();
+  });
+
+  document.getElementById("levelFilter").addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-level]");
+    if (!btn) return;
+    state.levelSel[state.currentMapId] = btn.dataset.level;
+    store.set(LEVEL_KEY, state.levelSel);
+    renderLevelFilter(state.currentMapId);
+    rebuildActive();
     renderFilters(); renderMarkers(); updateStats();
   });
 
