@@ -76,9 +76,13 @@ function catDef(mapId, id) { return catsFor(mapId)[id] || { name: "카테고리 
 function isCustom(id) { return id[0] === "c"; }
 
 // ===== 지도 =====
+// 픽셀 기준 좌표계: 좌상단 원점, y 아래로 증가 (이미지·타일 맵 공통).
+// 마커 [lat, lng] = [픽셀y, 픽셀x] = [origin_y + 게임y, origin_x + 게임x]
+const CRS_PX = L.extend({}, L.CRS.Simple, { transformation: new L.Transformation(1, 0, 1, 0) });
+
 function initMap() {
   state.map = L.map("map", {
-    crs: L.CRS.Simple, minZoom: -4, maxZoom: 4, zoomSnap: 0.25,
+    crs: CRS_PX, minZoom: -8, maxZoom: 6, zoomSnap: 0.25,
     preferCanvas: true, attributionControl: false,
   });
   state.layer = L.layerGroup().addTo(state.map);
@@ -89,12 +93,39 @@ async function selectMap(mapId) {
   const def = MAPS_LIST.find((m) => m.id === mapId);
   if (!def) return;
   state.currentMapId = mapId;
-  const [size] = await Promise.all([loadImageSize(def.image), ensureLoaded(mapId)]);
-  const bounds = [[0, 0], [size.h, size.w]];
-  if (state.overlay) state.overlay.remove();
-  state.overlay = L.imageOverlay(def.image, bounds).addTo(state.map);
+
+  let w, h;
+  if (def.kind === "tiles") {
+    [w, h] = def.size;
+    await ensureLoaded(mapId);
+  } else {
+    const [size] = await Promise.all([loadImageSize(def.image), ensureLoaded(mapId)]);
+    w = size.w; h = size.h;
+  }
+  const bounds = [[0, 0], [h, w]];
+
+  if (state.overlay) { state.overlay.remove(); state.overlay = null; }
+  if (def.kind === "tiles") {
+    // 호요랩은 P0(최고해상도) 타일만 제공 → Leaflet이 그걸 축소/확대해 모든 줌 처리
+    state.overlay = L.tileLayer(def.tiles, {
+      tileSize: 256,
+      minZoom: -8, maxZoom: 6,                             // 레이어 표시 줌 범위(맵과 일치)
+      minNativeZoom: def.maxZoom, maxNativeZoom: def.maxZoom, // P0만 네이티브
+      bounds, noWrap: true, updateWhenZooming: false,
+    }).addTo(state.map);
+  } else {
+    state.overlay = L.imageOverlay(def.image, bounds).addTo(state.map);
+  }
   state.map.setMaxBounds(L.latLngBounds(bounds).pad(0.5));
-  state.map.fitBounds(bounds);
+  // 콘텐츠(마커) 영역으로 맞춤 — 타일 맵의 빈 여백 로딩을 줄이고 화면도 딱 맞음
+  const list = markersFor(mapId);
+  if (list.length) {
+    const lats = list.map((m) => m.lat), lngs = list.map((m) => m.lng);
+    state.map.fitBounds([[Math.min(...lats), Math.min(...lngs)], [Math.max(...lats), Math.max(...lngs)]], { padding: [30, 30] });
+  } else {
+    state.map.fitBounds(bounds);
+  }
+
   buildAdminCats();
   renderFilters();
   renderMarkers();
