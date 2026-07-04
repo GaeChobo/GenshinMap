@@ -222,24 +222,26 @@ function leafIcon(cat) {
       ? '<img src="' + c.icon + '" alt="" loading="lazy">'
       : '<span class="mk-dot" style="background:' + c.color + '"></span>';
     iconCache[key] = L.divIcon({
-      className: "mk",
+      className: "mk pin-precise", // 물방울 끝이 정확한 좌표를 가리킴
       html: '<div class="mk-badge" style="border-color:' + c.color + '">' + inner + "</div>",
-      iconSize: [30, 30], iconAnchor: [15, 15], popupAnchor: [0, -16],
+      iconSize: [30, 38], iconAnchor: [15, 38], popupAnchor: [0, -34],
     });
   }
   return iconCache[key];
 }
-// 클러스터(가까운 같은 카테고리 마커 묶음) 아이콘 — 카테고리 아이콘 + 배지(수집/전체 또는 개수)
-function clusterIcon(cat, label, complete) {
+// 클러스터 아이콘 — 링(conic-gradient)이 수집비율, 중앙에 개수 (디자인 v2)
+function clusterIcon(cat, total, done, collectible) {
   const c = catDef(state.currentMapId, cat);
-  const inner = c.icon
-    ? '<img src="' + c.icon + '" alt="" loading="lazy">'
-    : '<span class="mk-dot" style="background:' + c.color + '"></span>';
+  const ratio = collectible && total ? done / total : 0;
+  const complete = collectible && done === total;
+  const size = total <= 5 ? "sm" : total <= 30 ? "md" : "lg";
+  const px = size === "sm" ? 32 : size === "lg" ? 50 : 40;
   return L.divIcon({
-    className: "mk mk-cluster" + (complete ? " is-complete" : ""),
-    html: '<div class="mk-badge" style="border-color:' + c.color + '">' + inner + "</div>" +
-      '<span class="cluster-count">' + label + "</span>",
-    iconSize: [34, 34], iconAnchor: [17, 17], popupAnchor: [0, -18],
+    className: "mk-cluster-host",
+    html: '<div class="mk-cluster ' + size + (complete ? " done" : "") +
+      '" style="--ratio:' + ratio.toFixed(3) + ";--ring:" + c.color + '">' +
+      '<span class="mk-cluster-inner"><b class="mk-cluster-count">' + total + "</b></span></div>",
+    iconSize: [px, px], iconAnchor: [px / 2, px / 2], popupAnchor: [0, -px / 2],
   });
 }
 function popupHtml(m) {
@@ -323,9 +325,8 @@ function renderMarkers() {
     // 완료 클러스터는 "먹은 것 숨기기" 시 숨김 (리젠 자원은 완료 개념 없음)
     if (state.hideCompleted && collectible && cell.done === total) continue;
     const lat = cell.sy / total, lng = cell.sx / total;
-    const label = collectible ? cell.done + "/" + total : String(total); // 수집대상은 수집/전체, 리젠은 개수
     const cm = L.marker([lat, lng], {
-      icon: clusterIcon(cell.cat, label, collectible && cell.done === total), keyboard: false,
+      icon: clusterIcon(cell.cat, total, cell.done, collectible), keyboard: false,
     });
     cm.on("click", () => state.map.setView([lat, lng], Math.min(zoom + 2, state.map.getMaxZoom())));
     cm.addTo(state.layer);

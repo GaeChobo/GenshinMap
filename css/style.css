@@ -386,14 +386,16 @@ label { cursor: pointer; }
   white-space: nowrap;
 }
 /* JS can set --pct (0–100) on #stats to fill the bar */
+#stats { gap: var(--sp-2); padding: 4px 12px 4px 8px; }
+#stats strong { color: var(--accent-strong); font-weight: 700; font-variant-numeric: tabular-nums; }
 #stats::before {
   content: "";
-  width: 84px; height: 7px;
+  width: 100px; height: 8px;
   border-radius: var(--r-pill);
   background:
-    linear-gradient(90deg, var(--metal-bright), var(--accent)) 0/ var(--pct, 0%) 100% no-repeat,
-    var(--panel-sunken);
-  box-shadow: inset 0 0 0 1px var(--border);
+    linear-gradient(90deg, var(--metal), var(--accent)) 0 / max(var(--pct, 0%), 3px) 100% no-repeat,
+    color-mix(in srgb, var(--ink) 12%, transparent);
+  box-shadow: inset 0 0 0 1px var(--border-soft);
 }
 
 #syncStatus {
@@ -720,11 +722,14 @@ label { cursor: pointer; }
   transform: rotate(-45deg);
   background: var(--panel-solid);
   border: 2px solid var(--metal);            /* fallback; JS overrides border-color */
-  box-shadow: var(--marker-shadow);
+  box-shadow: var(--marker-shadow), 0 0 0 1.5px var(--panel-solid);  /* surface halo lifts pin off any map bg */
   transition: transform .1s var(--ease), filter .1s var(--ease);
 }
-.mk-badge > * { transform: rotate(45deg); }  /* un-rotate the contents */
-.mk-badge img { width: 18px; height: 18px; object-fit: contain; display: block; }
+.mk-badge > * { transform: rotate(45deg); }
+.mk-badge img {
+  width: 18px; height: 18px; object-fit: contain; display: block;
+  filter: drop-shadow(0 0 1px var(--panel-solid));  /* keeps the glyph readable over the pin */
+}
 
 .mk-dot {
   width: 12px; height: 12px;
@@ -754,7 +759,7 @@ label { cursor: pointer; }
   box-shadow: var(--shadow-pop) !important;
   padding: 0 !important;
 }
-.leaflet-popup-content { margin: 0 !important; padding: var(--sp-3) var(--sp-3) var(--sp-2) !important; min-width: 180px; }
+.leaflet-popup-content { margin: 0 !important; padding: var(--sp-3) var(--sp-3) var(--sp-2) !important; min-width: 204px; }
 .leaflet-popup-tip { background: var(--panel-solid) !important; border: 1px solid var(--border) !important; box-shadow: none !important; }
 .leaflet-popup-close-button { color: var(--ink-faint) !important; font-size: 18px !important; padding: 6px 8px 0 0 !important; }
 .leaflet-popup-close-button:hover { color: var(--ink) !important; }
@@ -949,23 +954,142 @@ label { cursor: pointer; }
 }
 
 /* ---------------------------------------------------------------------------
-   12. 기존 JS 호환 (앱 로직이 .hidden 클래스를 토글함)
+   12. REVIEW REFINEMENTS  (v2 — clustering, popup reviews, map framing)
+   All additive; existing hooks unchanged.
+   ------------------------------------------------------------------------- */
+
+/* ── #1  Map framing: seat the dark game map inside the light UI without
+   washing the art. A hairline + soft inner vignette reads as intentional.
+   Add <div class="map-frame"></div> as a child of #map (pointer-events:none),
+   OR keep it purely on #map if your Leaflet container allows ::after. */
+.map-frame {
+  position: absolute; inset: 0; z-index: 450; pointer-events: none;
+  box-shadow: inset 0 0 0 1px var(--border),
+              inset 0 0 90px 12px var(--map-shade);
+  border-radius: inherit;
+}
+/* Optional: knit palette by tinting the tiles a hair toward the theme.
+   Raise the alpha of --map-shade per theme if you want more harmony:
+   light ~ rgba(226,232,241,.05)  ·  dark ~ rgba(2,6,16,.22) (already set). */
+
+/* ── #2  Cluster badge — groups nearby markers (원신맵스 style).
+   Markup:
+     <div class="mk-cluster md" style="--ratio:.66">          // .sm/.md/.lg by count
+       <span class="mk-cluster-inner">
+         <b class="mk-cluster-count">12</b>
+       </span>
+     </div>
+   Set --ratio (0..1) = collected/total; the ring fills clockwise.
+   Colour the ring by dominant category via inline --ring: <category color>. */
+.mk-cluster {
+  --ratio: 0;                           /* @kind other */
+  --ring: var(--accent);                /* @kind other */
+  width: 40px; height: 40px;
+  padding: 3px;                         /* ring thickness */
+  border-radius: 50%;
+  display: grid; place-items: center;
+  cursor: pointer;
+  box-shadow: var(--marker-shadow), 0 0 0 1.5px var(--panel-solid);
+  background:
+    conic-gradient(var(--ring) calc(var(--ratio) * 360deg),
+                   color-mix(in srgb, var(--ink) 15%, transparent) 0);
+  transition: transform .1s var(--ease), filter .1s var(--ease);
+}
+.mk-cluster-inner {
+  width: 100%; height: 100%;
+  display: grid; place-items: center; text-align: center;
+  border-radius: 50%;
+  background: var(--panel-solid);
+  border: 1px solid var(--border-soft);
+  color: var(--ink);
+  line-height: 1;
+}
+.mk-cluster-count { font: 700 13px/1 var(--font-body); font-variant-numeric: tabular-nums; }
+.mk-cluster-sub  { display: block; font: 600 9px/1 var(--font-body); color: var(--ink-faint); margin-top: 2px; }
+.mk-cluster.sm { width: 32px; height: 32px; }
+.mk-cluster.sm .mk-cluster-count { font-size: 11px; }
+.mk-cluster.lg { width: 50px; height: 50px; padding: 4px; }
+.mk-cluster.lg .mk-cluster-count { font-size: 15px; }
+.mk-cluster:hover { transform: scale(1.08); z-index: 500; }
+.mk-cluster.done { filter: grayscale(.55); opacity: .5; }     /* fully collected */
+
+/* ── #6  Precise tip anchor. The teardrop's sharp corner is the anchor point.
+   Give the .mk wrapper a fixed box and set Leaflet iconAnchor to the tip:
+     L.divIcon({ className:'mk', html:'<div class="mk-badge" …>…</div>',
+                 iconSize:[30,38], iconAnchor:[15,38] })   // [w/2, tipY]
+   The badge below is tuned so its point sits exactly at bottom-centre (15,38). */
+.mk.pin-precise { width: 30px; height: 38px; }
+.mk.pin-precise .mk-badge {
+  position: absolute; left: 50%; top: 0;
+  width: 26px; height: 26px;
+  margin-left: -13px;                   /* centre horizontally → tip at x=15 */
+}
+/* tip lands at y≈38: 26px badge, rotated corner extends ~11px below → ~37–38px */
+
+/* ── #4  Popup reviews / comments. Append inside .leaflet-popup-content,
+   after .popup-actions:
+     <div class="popup-reviews">
+       <div class="popup-reviews-head">리뷰 <span class="count">3</span></div>
+       <ul class="review-list">
+         <li class="review-item">
+           <span class="review-avatar">파</span>
+           <div class="review-body">
+             <div class="review-meta"><span class="review-name">파이몬</span>
+               <span class="review-stars" data-score="4"></span>
+               <span class="review-time">2일 전</span></div>
+             <p class="review-text">절벽 아래 숨겨져 있어요. 바람 타면 쉬움.</p>
+           </div>
+         </li>
+       </ul>
+       <form class="review-form">
+         <textarea class="review-input" placeholder="리뷰 남기기…" rows="1"></textarea>
+         <button class="review-send" type="submit">등록</button>
+       </form>
+     </div> */
+.popup-reviews { margin-top: var(--sp-3); padding-top: var(--sp-2); border-top: 1px solid var(--border-soft); }
+.popup-reviews-head { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; letter-spacing: .04em; color: var(--ink-soft); margin-bottom: var(--sp-2); text-transform: uppercase; }
+.popup-reviews-head .count { color: var(--ink-faint); font-weight: 600; }
+
+.review-list { list-style: none; margin: 0; padding: 0 2px 0 0; display: flex; flex-direction: column; gap: var(--sp-2); max-height: 140px; overflow-y: auto; overscroll-behavior: contain; }
+.review-item { display: flex; gap: var(--sp-2); }
+.review-avatar {
+  width: 22px; height: 22px; flex: 0 0 auto;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  font: 700 10px/1 var(--font-body);
+  color: var(--on-metal);
+  background: linear-gradient(180deg, var(--metal-bright), var(--metal));
+}
+.review-body { flex: 1; min-width: 0; }
+.review-meta { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+.review-name { font-size: 11.5px; font-weight: 700; color: var(--ink); white-space: nowrap; }
+.review-time { font-size: 10px; color: var(--ink-faint); }
+.review-text { margin: 2px 0 0; font-size: 12px; line-height: 1.5; color: var(--ink-soft); word-break: break-word; }
+
+/* optional star rating: data-score="0..5" */
+.review-stars { display: inline-flex; font-size: 10px; letter-spacing: 1px; color: var(--warn); }
+.review-stars::before { content: "\2606\2606\2606\2606\2606"; }
+.review-stars[data-score="1"]::before { content: "\2605\2606\2606\2606\2606"; }
+.review-stars[data-score="2"]::before { content: "\2605\2605\2606\2606\2606"; }
+.review-stars[data-score="3"]::before { content: "\2605\2605\2605\2606\2606"; }
+.review-stars[data-score="4"]::before { content: "\2605\2605\2605\2605\2606"; }
+.review-stars[data-score="5"]::before { content: "\2605\2605\2605\2605\2605"; }
+
+.review-form { display: flex; align-items: flex-end; gap: 6px; margin-top: var(--sp-2); }
+.review-input { flex: 1; min-height: 34px; height: 34px; max-height: 88px; resize: none; padding: 8px 10px; font-size: 12px; line-height: 1.4; }
+.review-send {
+  flex: 0 0 auto; min-height: 34px; padding: 7px 13px;
+  color: var(--on-metal);
+  background: linear-gradient(180deg, var(--metal-bright), var(--metal));
+  border-color: var(--metal); font-weight: 700;
+}
+.review-send:hover { background: var(--metal-bright); }
+
+/* ---------------------------------------------------------------------------
+   13. 기존 JS 호환 (앱 로직이 .hidden 클래스를 토글함)
    ------------------------------------------------------------------------- */
 .hidden { display: none !important; }
 #syncStatus:empty { display: none; }
 #adminEditActions { display: flex; gap: var(--sp-2); }
 #adminEditActions button { flex: 1; }
-
-/* 클러스터(개수 배지) — 디자인 리뷰에서 다듬을 예정 */
-.mk-cluster { position: relative; cursor: pointer; }
-.mk-cluster .cluster-count {
-  position: absolute; top: -5px; right: -7px;
-  min-width: 17px; height: 17px; padding: 0 4px;
-  border-radius: var(--r-pill);
-  background: var(--metal); color: var(--on-metal);
-  font-size: 10px; font-weight: 700; line-height: 17px; text-align: center;
-  border: 1.5px solid var(--panel-solid);
-  box-shadow: var(--marker-shadow);
-}
-.mk-cluster.is-complete .mk-badge { filter: grayscale(.6); opacity: .5; }
-.mk-cluster.is-complete .cluster-count { background: var(--accent); }
+.mk-cluster-host { line-height: 0; }
