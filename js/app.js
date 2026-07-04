@@ -40,6 +40,7 @@ const state = {
   areaSel: store.get(AREA_KEY, {}), // mapId -> 선택된 area_id (0/없음 = 전체)
   levelSel: store.get(LEVEL_KEY, {}), // mapId -> "all" | "surface" | "under"
   floors: {},               // mapId -> { floorId: 층이름 } (지하)
+  loadedAreas: {},          // mapId -> Set(로드된 area_id) (나라별 지연 로드)
   active: [],               // 현재 지도+지역+층의 렌더 대상 마커 캐시 (moveend 성능)
 };
 state.hidden = (() => {
@@ -53,6 +54,11 @@ function saveHidden() {
 
 // 데이터 파일이 호출하는 등록 함수
 window.registerMarkers = (mapId, arr) => { state.baseMarkers[mapId] = arr; };
+// 나라별 분리 파일용: 해당 지역 마커를 누적(한 번만)
+window.registerAreaMarkers = (mapId, areaId, arr) => {
+  const bm = state.baseMarkers[mapId] || (state.baseMarkers[mapId] = []);
+  for (const m of arr) bm.push(m);
+};
 window.registerCategories = (mapId, obj) => { state.cats[mapId] = obj; };
 window.registerSlices = (mapId, obj) => { state.slicesData[mapId] = obj; };
 window.registerFloors = (mapId, obj) => { state.floors[mapId] = obj; };
@@ -64,13 +70,31 @@ function loadScript(src) {
     s.src = src; s.onload = resolve; s.onerror = resolve; document.body.appendChild(s);
   });
 }
+// 나라별 분리 로드 지도(teyvat): 해당 지역 파일만 지연 로드 (mapAreas는 아래에 정의)
+function loadedAreaSet(mapId) { return state.loadedAreas[mapId] || (state.loadedAreas[mapId] = new Set()); }
+async function loadAreaMarkers(mapId, areaId) {
+  const set = loadedAreaSet(mapId);
+  if (set.has(areaId)) return;
+  set.add(areaId);
+  await loadScript("data/markers/" + mapId + "/" + areaId + ".js");
+}
+async function loadAllAreas(mapId) {
+  const areas = mapAreas(mapId); if (!areas) return;
+  await Promise.all([loadAreaMarkers(mapId, 0)].concat(areas.map((a) => loadAreaMarkers(mapId, a.id))));
+}
+// 현재 선택(지역/전체)에 필요한 마커 파일 로드
+async function ensureAreaLoaded(mapId) {
+  if (!mapAreas(mapId)) return;
+  const a = state.areaSel[mapId] || 0;
+  if (a) await loadAreaMarkers(mapId, a); else await loadAllAreas(mapId);
+}
+
 async function ensureLoaded(mapId) {
   if (state.loaded.has(mapId)) return;
   const def = MAPS_LIST.find((m) => m.id === mapId);
-  const loads = [
-    loadScript("data/categories/" + mapId + ".js"),
-    loadScript("data/markers/" + mapId + ".js"),
-  ];
+  const loads = [loadScript("data/categories/" + mapId + ".js")];
+  // 나라별 분리 지도는 마커를 통짜로 안 불러옴(지역별 지연 로드)
+  if (!(def && def.areas)) loads.push(loadScript("data/markers/" + mapId + ".js"));
   if (def && def.kind === "slices") loads.push(loadScript("data/slices/" + mapId + ".js"));
   loads.push(loadScript("data/floors/" + mapId + ".js")); // 지하 층 정보(없으면 무시)
   await Promise.all(loads);
@@ -298,6 +322,7 @@ async function selectMap(mapId) {
   }
   populateAreaSelect(mapId); // 지역 선택기(기본 나라 설정 포함) — 필터/렌더 전에
   renderLevelFilter(mapId);  // 지상/지하 필터 (지하 있는 지도만 표시)
+  await ensureAreaLoaded(mapId); // 나라별 분리 지도: 선택 지역 마커 파일 지연 로드
   rebuildActive();           // 렌더 캐시 — fitBounds가 유발하는 moveend 렌더 전에 준비
 
   if (state.overlay) { state.overlay.remove(); state.overlay = null; }
@@ -330,16 +355,21 @@ async function selectMap(mapId) {
   state.map.setMaxBounds(L.latLngBounds(bounds).pad(0.5));
   // 콘텐츠(마커) 영역으로 맞춤 — 빈 여백 로딩을 줄이고 화면도 딱 맞음
   state.map.setMinZoom(-8); // 잠시 풀어서 fitBounds가 자유롭게 맞추게
-  const list = markersFor(mapId);
-  if (list.length) {
-    let minLat = Infinity, maxLat = -Infinity, minLng = Infinity, maxLng = -Infinity;
-    for (const m of list) { // 스프레드 대신 루프(마커 수만 개 대응)
-      if (m.lat < minLat) minLat = m.lat; if (m.lat > maxLat) maxLat = m.lat;
-      if (m.lng < minLng) minLng = m.lng; if (m.lng > maxLng) maxLng = m.lng;
-    }
-    state.map.fitBounds([[minLat, minLng], [maxLat, maxLng]], { padding: [30, 30] });
+  // 대륙 전체 fit(최대 축소 기준). 나라별 지연 로드 지도는 def.content 사용(전 마커 안 불러도 됨)
+  if (def.content) {
+    state.map.fitBounds(def.content, { padding: [30, 30] });
   } else {
-    state.map.fitBounds(bounds);
+    const list = markersFor(mapId);
+    if (list.length) {
+      let minLat = Infinity, maxLat = -Infinity, minLng = Infinity, maxLng = -Infinity;
+      for (const m of list) { // 스프레드 대신 루프(마커 수만 개 대응)
+        if (m.lat < minLat) minLat = m.lat; if (m.lat > maxLat) maxLat = m.lat;
+        if (m.lng < minLng) minLng = m.lng; if (m.lng > maxLng) maxLng = m.lng;
+      }
+      state.map.fitBounds([[minLat, minLng], [maxLat, maxLng]], { padding: [30, 30] });
+    } else {
+      state.map.fitBounds(bounds);
+    }
   }
   // 콘텐츠 전체가 보이는 지점보다 더 축소 못 하게 (원신맵스처럼 대륙이 화면에 꽉 차는 정도까지만)
   state.map.setMinZoom(state.map.getZoom() - 0.5);
@@ -735,9 +765,10 @@ function boot() {
   }
   sel.addEventListener("change", () => selectMap(sel.value));
 
-  document.getElementById("areaSelect").addEventListener("change", (e) => {
+  document.getElementById("areaSelect").addEventListener("change", async (e) => {
     state.areaSel[state.currentMapId] = Number(e.target.value);
     store.set(AREA_KEY, state.areaSel);
+    await ensureAreaLoaded(state.currentMapId); // 선택 지역/전체 마커 파일 지연 로드
     rebuildActive();
     fitToArea();
     renderFilters(); renderMarkers(); updateStats();

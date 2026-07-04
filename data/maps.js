@@ -7,6 +7,8 @@ window.MAPS_LIST = [
   { id: "teyvat", name: "티바트 대륙", kind: "tiles",
     tileBase: "https://act-webstatic.hoyoverse.com/map_manage/map/2/c0eaef431637950e44ef47dc2ba0c105/", zoomStyle: "N",
     size: [36864, 16384], minNative: -4, maxNative: -1,
+    // 마커를 나라별 파일로 분리 로드(data/markers/teyvat/<area>.js). content=전체 마커 bbox(최대 축소 기준).
+    content: [[2102, 7674], [15323, 28020]],
     // 나라(지역) 선택 — 마커의 a(area_id) 기준. 호요랩 순서.
     areas: [
       { id: 1, name: "몬드" }, { id: 2, name: "리월" }, { id: 3, name: "이나즈마" },

@@ -172,9 +172,30 @@ const PALETTE = [
 
   fs.writeFileSync(path.join(ROOT, `data/categories/${localId}.js`),
     `registerCategories("${localId}", ${JSON.stringify(categories, null, 1)});\n`);
-  fs.writeFileSync(path.join(ROOT, `data/markers/${localId}.js`),
-    `registerMarkers("${localId}", ${JSON.stringify(markers)});\n`);
-  console.log(`  data/categories/${localId}.js, data/markers/${localId}.js 생성`);
+
+  // 마커 저장: 지역(area)이 여러 개면 나라별 파일로 분리(지연 로드), 아니면 통짜 1파일
+  const areaIds = [...new Set(markers.map((m) => m.a || 0))];
+  if (areaIds.filter((a) => a).length > 1) {
+    const dir = path.join(ROOT, `data/markers/${localId}`);
+    fs.mkdirSync(dir, { recursive: true });
+    for (const a of areaIds) {
+      const list = markers.filter((m) => (m.a || 0) === a);
+      fs.writeFileSync(path.join(dir, `${a}.js`),
+        `registerAreaMarkers("${localId}", ${a}, ${JSON.stringify(list)});\n`);
+    }
+    // 통짜 파일이 남아있으면 제거(지연 로드와 충돌)
+    const single = path.join(ROOT, `data/markers/${localId}.js`);
+    if (fs.existsSync(single)) fs.rmSync(single);
+    let mnLat = 1e9, mxLat = -1e9, mnLng = 1e9, mxLng = -1e9;
+    for (const m of markers) { if (m.lat < mnLat) mnLat = m.lat; if (m.lat > mxLat) mxLat = m.lat; if (m.lng < mnLng) mnLng = m.lng; if (m.lng > mxLng) mxLng = m.lng; }
+    console.log(`  data/markers/${localId}/ 에 나라별 ${areaIds.length}파일 생성`);
+    console.log(`  ⚠ data/maps.js의 "${localId}"에 content 갱신: content: [[${Math.round(mnLat)}, ${Math.round(mnLng)}], [${Math.round(mxLat)}, ${Math.round(mxLng)}]]`);
+  } else {
+    fs.writeFileSync(path.join(ROOT, `data/markers/${localId}.js`),
+      `registerMarkers("${localId}", ${JSON.stringify(markers)});\n`);
+    console.log(`  data/markers/${localId}.js 생성`);
+  }
+  console.log(`  data/categories/${localId}.js 생성`);
 
   // 사용된 지하 층만 registry로 저장 (있을 때만)
   const usedFloors = {};
