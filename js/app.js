@@ -154,11 +154,18 @@ async function selectMap(mapId) {
   if (state.overlay) { state.overlay.remove(); state.overlay = null; }
   state.sliceUpdate = null;
   if (def.kind === "tiles") {
-    // 호요랩은 P0(최고해상도) 타일만 제공 → Leaflet이 그걸 축소/확대해 모든 줌 처리
-    state.overlay = L.tileLayer(def.tiles, {
+    // 호요랩 타일: 표기 N(N{-z}, 다단계 피라미드) 또는 P(P{z}, 최고해상도만) 지원
+    const zoomStyle = def.zoomStyle || "P";
+    const HoyoTiles = L.TileLayer.extend({
+      getTileUrl(coords) {
+        const zp = zoomStyle === "N" ? "N" + (-coords.z) : "P" + coords.z;
+        return def.tileBase + coords.x + "_" + coords.y + "_" + zp + ".webp";
+      },
+    });
+    state.overlay = new HoyoTiles("", {
       tileSize: 256,
-      minZoom: -8, maxZoom: 6,                             // 레이어 표시 줌 범위(맵과 일치)
-      minNativeZoom: def.maxZoom, maxNativeZoom: def.maxZoom, // P0만 네이티브
+      minZoom: -8, maxZoom: 6,                                    // 레이어 표시 줌 범위(맵과 일치)
+      minNativeZoom: def.minNative, maxNativeZoom: def.maxNative, // 실제 타일 존재 줌
       bounds, noWrap: true, updateWhenZooming: false,
     }).addTo(state.map);
   } else if (def.kind === "slices") {

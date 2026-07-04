@@ -54,10 +54,44 @@ const PALETTE = [
 (async () => {
   console.log(`▶ map_id=${mapId} 가져오는 중...`);
   const info = (await api("v1", "info")).info;
-  const isTile = !(info.detail && info.detail.length > 2);
+  const v2 = info.detail_v2;
+  // 현행 타일(detail_v2)이 있으면 그걸 우선 사용 (map/2처럼 구 이미지+신 타일 공존 시)
+  const useTiles = v2 && v2.map_version && Array.isArray(v2.total_size) && v2.total_size.length === 2;
+
+  async function headOk(u) { try { return (await fetch(u, { method: "HEAD", headers: H })).status === 200; } catch (e) { return false; } }
 
   let origin, mapEntry, imgNote = "";
-  if (!isTile) {
+  if (useTiles) {
+    // ── 타일 맵 (호요랩 CDN 핫링크) ──
+    const [w, h] = v2.total_size;
+    origin = v2.origin;
+    const base = `${TILE_CDN}/${mapId}/${v2.map_version}/`;
+    const minz = v2.min_zoom || 0, maxz = v2.max_zoom || 0;
+    const [ox0, oy0] = origin;
+    // 레벨 L(≤0)에서 원점 근처에 실제 타일이 있는지
+    async function existsAt(style, L) {
+      const tw = 256 * Math.pow(2, -L);        // L<=0 → 타일이 덮는 픽셀 폭
+      const cx = Math.floor(ox0 / tw), cy = Math.floor(oy0 / tw);
+      for (let dx = -2; dx <= 2; dx++) for (let dy = -2; dy <= 2; dy++) {
+        const x = cx + dx, y = cy + dy; if (x < 0 || y < 0) continue;
+        const zp = style === "N" ? "N" + (-L) : "P" + L;
+        if (await headOk(`${base}${x}_${y}_${zp}.webp`)) return true;
+      }
+      return false;
+    }
+    // 표기 감지(N 우선)
+    let zoomStyle = (await existsAt("N", minz)) || (await existsAt("N", maxz)) ? "N" : "P";
+    // 실제 존재하는 네이티브 레벨 범위
+    const levels = [];
+    for (let L = maxz; L >= minz; L--) if (await existsAt(zoomStyle, L)) levels.push(L);
+    const maxNative = levels.length ? Math.max(...levels) : 0;
+    const minNative = levels.length ? Math.min(...levels) : 0;
+    console.log(`  타일 맵 ${w}x${h}, origin [${origin}], 표기 ${zoomStyle}, 네이티브 ${minNative}..${maxNative}`);
+    mapEntry =
+      `{ id: "${localId}", name: "${name}", kind: "tiles",\n` +
+      `    tileBase: "${base}", zoomStyle: "${zoomStyle}",\n` +
+      `    size: [${w}, ${h}], minNative: ${minNative}, maxNative: ${maxNative} }`;
+  } else {
     // ── 이미지 맵 ──
     const d = JSON.parse(info.detail);
     const [w, h] = d.total_size;
@@ -73,23 +107,12 @@ const PALETTE = [
       console.log(`  이미지 저장 → ${file} (${(buf.length / 1e6).toFixed(1)}MB)`);
       mapEntry = `{ id: "${localId}", name: "${name}", image: "${file}", size: [${w}, ${h}] }`;
     } else {
-      // 다중 슬라이스: 조각을 호요랩 CDN에서 핫링크, 보이는 것만 로드(앱에서 컬링)
       const grid = d.slices.map((row) => row.map((s) => s.url));
       fs.writeFileSync(path.join(ROOT, `data/slices/${localId}.js`),
         `registerSlices("${localId}", ${JSON.stringify({ rows, cols, sliceW: w / cols, sliceH: h / rows, grid })});\n`);
       console.log(`  슬라이스 ${rows}x${cols} → data/slices/${localId}.js (핫링크)`);
       mapEntry = `{ id: "${localId}", name: "${name}", kind: "slices", size: [${w}, ${h}] }`;
     }
-  } else {
-    // ── 타일 맵 (호요랩 CDN 핫링크) ──
-    const v2 = info.detail_v2;
-    const [w, h] = v2.total_size;
-    origin = v2.origin;
-    console.log(`  타일 맵 padded ${w}x${h}, origin [${origin}], zoom ${v2.min_zoom}..${v2.max_zoom}`);
-    mapEntry =
-      `{ id: "${localId}", name: "${name}", kind: "tiles",\n` +
-      `    tiles: "${TILE_CDN}/${mapId}/${v2.map_version}/{x}_{y}_P{z}.webp",\n` +
-      `    size: [${w}, ${h}], minZoom: ${v2.min_zoom}, maxZoom: ${v2.max_zoom} }`;
   }
 
   // ── 카테고리(라벨) ──
