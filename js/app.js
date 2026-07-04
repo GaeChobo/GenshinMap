@@ -35,6 +35,7 @@ const state = {
   sliceUpdate: null,        // 현재 슬라이스 맵의 갱신 함수
   editingId: null,          // 관리자 모드에서 편집 중인 커스텀 마커 id
   areaSel: store.get(AREA_KEY, {}), // mapId -> 선택된 area_id (0/없음 = 전체)
+  active: [],               // 현재 지도+지역의 렌더 대상 마커 캐시 (moveend 성능)
 };
 state.hidden = (() => {
   const raw = store.get(HIDDEN_KEY, {});
@@ -101,6 +102,16 @@ function areaMarkers(mapId) {
   const a = state.areaSel[mapId] || 0;
   const all = markersFor(mapId);
   return a ? all.filter((m) => m.a === a) : all;
+}
+// 렌더 대상 캐시 재빌드 — 지도/지역/커스텀이 바뀔 때만 호출.
+// (moveend마다 8만개 전체를 순회하면 끊김 → 선택 지역 마커만 미리 걸러둠)
+function rebuildActive() {
+  const mapId = state.currentMapId;
+  if (!mapId) { state.active = []; return; }
+  const a = currentArea();
+  const base = state.baseMarkers[mapId] || [];
+  const cust = state.custom.filter((m) => m.map === mapId);
+  state.active = (a ? base.filter((m) => m.a === a) : base).concat(cust);
 }
 function catsFor(mapId) { return state.cats[mapId] || {}; }
 function catDef(mapId, id) { return catsFor(mapId)[id] || { name: "카테고리 " + id, group: "기타", color: "#b98ce0" }; }
@@ -180,14 +191,28 @@ function populateAreaSelect(mapId) {
 }
 // 선택 지역으로 화면 맞춤 (minZoom은 대륙 기준 유지 → 언제든 축소 가능)
 function fitToArea() {
-  const list = areaMarkers(state.currentMapId);
+  const mapId = state.currentMapId;
+  const a = state.areaSel[mapId] || 0;
+  const list = areaMarkers(mapId);
   if (!list.length) return;
-  let minLat = Infinity, maxLat = -Infinity, minLng = Infinity, maxLng = -Infinity;
-  for (const m of list) {
-    if (m.lat < minLat) minLat = m.lat; if (m.lat > maxLat) maxLat = m.lat;
-    if (m.lng < minLng) minLng = m.lng; if (m.lng > maxLng) maxLng = m.lng;
+  let bb;
+  if (a) {
+    // 특정 나라: 멀리 떨어진 소수 이상치(예: 폰타인 남쪽)에 화면이 끌려가지 않도록
+    // 상·하위 2%를 잘라낸 밀집 구역에 초점을 맞춘다.
+    const lats = list.map((m) => m.lat).sort((x, y) => x - y);
+    const lngs = list.map((m) => m.lng).sort((x, y) => x - y);
+    const q = (arr, p) => arr[Math.floor((arr.length - 1) * p)];
+    bb = [[q(lats, 0.02), q(lngs, 0.02)], [q(lats, 0.98), q(lngs, 0.98)]];
+  } else {
+    // 전체: 대륙 전체가 보이게
+    let mnLat = Infinity, mxLat = -Infinity, mnLng = Infinity, mxLng = -Infinity;
+    for (const m of list) {
+      if (m.lat < mnLat) mnLat = m.lat; if (m.lat > mxLat) mxLat = m.lat;
+      if (m.lng < mnLng) mnLng = m.lng; if (m.lng > mxLng) mxLng = m.lng;
+    }
+    bb = [[mnLat, mnLng], [mxLat, mxLng]];
   }
-  state.map.fitBounds([[minLat, minLng], [maxLat, maxLng]], { padding: [30, 30] });
+  state.map.fitBounds(bb, { padding: [30, 30] });
 }
 
 async function selectMap(mapId) {
@@ -213,6 +238,7 @@ async function selectMap(mapId) {
     saveHidden();
   }
   populateAreaSelect(mapId); // 지역 선택기(기본 나라 설정 포함) — 필터/렌더 전에
+  rebuildActive();           // 렌더 캐시 — fitBounds가 유발하는 moveend 렌더 전에 준비
 
   if (state.overlay) { state.overlay.remove(); state.overlay = null; }
   state.sliceUpdate = null;
@@ -230,6 +256,7 @@ async function selectMap(mapId) {
       minZoom: -8, maxZoom: 6,                                    // 레이어 표시 줌 범위(맵과 일치)
       minNativeZoom: def.minNative, maxNativeZoom: def.maxNative, // 실제 타일 존재 줌
       bounds, noWrap: true, updateWhenZooming: false,
+      keepBuffer: 4,          // 화면 밖 타일을 더 유지 → 팬할 때 타일 재로딩(끊김) 감소
     }).addTo(state.map);
   } else if (def.kind === "slices") {
     state.overlay = makeSliceLayer(mapId).addTo(state.map);
@@ -352,8 +379,7 @@ function renderMarkers() {
   const hidden = hiddenSet(state.currentMapId);
   const cells = new Map();
   let count = 0;
-  for (const m of markersFor(state.currentMapId)) {
-    if (!inArea(m)) continue;                       // 지역(나라) 필터
+  for (const m of state.active) {                   // 지역 필터는 캐시(state.active)에서 이미 처리
     if (hidden.has(m.cat)) continue;               // 카테고리 필터만(완료는 그룹 계산에 포함)
     if (!b.contains([m.lat, m.lng])) continue;
     if (++count > CLUSTER_CAP) break;
@@ -410,13 +436,13 @@ function addCustomMarker(latlng) {
   };
   state.custom.push(m); store.set(CUSTOM_KEY, state.custom);
   document.getElementById("adminName").value = "";
-  renderFilters(); renderMarkers(); updateStats();
+  rebuildActive(); renderFilters(); renderMarkers(); updateStats();
 }
 window.__deleteCustom = function (id) {
   state.custom = state.custom.filter((m) => m.id !== id);
   store.set(CUSTOM_KEY, state.custom);
   if (state.editingId === id) cancelEdit();
-  state.map.closePopup(); renderFilters(); renderMarkers(); updateStats();
+  state.map.closePopup(); rebuildActive(); renderFilters(); renderMarkers(); updateStats();
 };
 
 // 커스텀 마커 편집: 관리자 패널에 값을 채우고 편집 모드로
@@ -594,7 +620,7 @@ function clearCustom() {
   if (!confirm("이 지도의 커스텀 마커 " + cnt + "개를 삭제할까요?\n(마커 내보내기로 저장한 뒤에 눌러야 안전)")) return;
   state.custom = state.custom.filter((m) => m.map !== state.currentMapId);
   store.set(CUSTOM_KEY, state.custom);
-  renderFilters(); renderMarkers(); updateStats();
+  rebuildActive(); renderFilters(); renderMarkers(); updateStats();
 }
 
 // ===== 관리자 모드 =====
@@ -627,6 +653,7 @@ function boot() {
   document.getElementById("areaSelect").addEventListener("change", (e) => {
     state.areaSel[state.currentMapId] = Number(e.target.value);
     store.set(AREA_KEY, state.areaSel);
+    rebuildActive();
     fitToArea();
     renderFilters(); renderMarkers(); updateStats();
   });
