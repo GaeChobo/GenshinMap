@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2000" height="1500" viewBox="0 0 2000 1500">
+  <rect width="2000" height="1500" fill="#0e2233"/>
+  <!-- 바다 물결 느낌 -->
+  <g stroke="#16324a" stroke-width="2" fill="none" opacity="0.6">
+    <path d="M0 200 Q 250 180 500 200 T 1000 200 T 1500 200 T 2000 200"/>
+    <path d="M0 1300 Q 250 1280 500 1300 T 1000 1300 T 1500 1300 T 2000 1300"/>
+  </g>
+  <!-- 대륙 -->
+  <path d="M 350 350 Q 550 200 850 280 Q 1150 200 1400 320 Q 1700 380 1650 650
+           Q 1750 900 1500 1080 Q 1300 1250 1000 1180 Q 700 1280 500 1100
+           Q 250 950 320 700 Q 250 480 350 350 Z"
+        fill="#1f4d33" stroke="#2f6b47" stroke-width="6"/>
+  <!-- 내부 지형 -->
+  <ellipse cx="700" cy="600" rx="160" ry="110" fill="#2a5f3f" opacity="0.8"/>
+  <ellipse cx="1250" cy="550" rx="200" ry="130" fill="#4a5a2e" opacity="0.8"/>
+  <ellipse cx="1000" cy="900" rx="230" ry="140" fill="#2a5f3f" opacity="0.7"/>
+  <ellipse cx="880" cy="720" rx="90" ry="70" fill="#3d7ba8" opacity="0.9"/>
+  <circle cx="1430" cy="880" r="80" fill="#7a6a3a" opacity="0.8"/>
+  <!-- 격자 -->
+  <g stroke="#ffffff" stroke-width="1" opacity="0.05">
+    <path d="M400 0V1500M800 0V1500M1200 0V1500M1600 0V1500M0 375H2000M0 750H2000M0 1125H2000"/>
+  </g>
+  <text x="1000" y="120" font-family="sans-serif" font-size="52" fill="#e8eaf0" text-anchor="middle" opacity="0.85">티바트 대륙 (임시 이미지)</text>
+  <text x="1000" y="175" font-family="sans-serif" font-size="26" fill="#9aa3b8" text-anchor="middle">실제 맵 이미지로 교체 예정</text>
+</svg>

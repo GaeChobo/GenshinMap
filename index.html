@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>내 원신 맵</title>
+<link rel="stylesheet" href="lib/leaflet.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header id="topbar">
+  <h1>내 원신 맵</h1>
+  <select id="mapSelect" title="지도 선택"></select>
+  <span id="stats"></span>
+  <span class="spacer"></span>
+  <button id="adminToggle">관리자 모드</button>
+  <button id="exportBtn" class="hidden" title="현재 지도의 마커를 파일로 저장">마커 내보내기</button>
+  <button id="clearCustomBtn" class="hidden" title="관리자 모드에서 추가한 마커를 모두 삭제">커스텀 초기화</button>
+</header>
+
+<div id="main">
+  <aside id="sidebar">
+    <h2>카테고리</h2>
+    <div id="filters"></div>
+    <div class="sidebar-actions">
+      <button id="showAllBtn">전체 켜기</button>
+      <button id="hideAllBtn">전체 끄기</button>
+    </div>
+    <p class="tip">마커를 클릭하면 완료 체크를 할 수 있어요.<br>완료 상태는 이 브라우저에 자동 저장됩니다.</p>
+  </aside>
+  <div id="map"></div>
+</div>
+
+<div id="adminPanel" class="hidden">
+  <h3>마커 추가</h3>
+  <label>종류
+    <select id="adminCategory"></select>
+  </label>
+  <label>이름 (비우면 자동)
+    <input id="adminName" type="text" placeholder="예: 바람신의 눈동자 #1">
+  </label>
+  <label>설명
+    <input id="adminDesc" type="text" placeholder="예: 나무 위에 떠 있음">
+  </label>
+  <p class="tip">지도를 클릭하면 그 자리에 마커가 추가됩니다.</p>
+</div>
+
+<script src="lib/leaflet.js"></script>
+<script src="data/maps.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

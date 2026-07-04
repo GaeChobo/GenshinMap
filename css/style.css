@@ -1,0 +1,141 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #14171f;
+  --panel: #1d2230;
+  --panel-border: #2c3347;
+  --text: #e8eaf0;
+  --text-dim: #9aa3b8;
+  --accent: #5ba8f5;
+}
+
+html, body { height: 100%; }
+
+body {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+  font-size: 14px;
+}
+
+/* ===== 상단 바 ===== */
+#topbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--panel-border);
+}
+
+#topbar h1 { font-size: 17px; margin-right: 6px; }
+
+#topbar .spacer { flex: 1; }
+
+#stats { color: var(--text-dim); font-size: 13px; }
+
+select, input, button {
+  background: #262c3d;
+  color: var(--text);
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 13px;
+  font-family: inherit;
+}
+
+button { cursor: pointer; }
+button:hover { border-color: var(--accent); }
+
+body.admin #adminToggle {
+  background: var(--accent);
+  color: #0e1118;
+  border-color: var(--accent);
+  font-weight: bold;
+}
+
+/* ===== 본문 ===== */
+#main { flex: 1; display: flex; min-height: 0; }
+
+#sidebar {
+  width: 210px;
+  padding: 14px;
+  background: var(--panel);
+  border-right: 1px solid var(--panel-border);
+  overflow-y: auto;
+}
+
+#sidebar h2 { font-size: 14px; margin-bottom: 10px; color: var(--text-dim); }
+
+.filter-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 2px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.filter-row .dot {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  border: 2px solid #fff3;
+  flex-shrink: 0;
+}
+
+.filter-row .count { margin-left: auto; color: var(--text-dim); font-size: 12px; }
+
+.sidebar-actions { display: flex; gap: 6px; margin-top: 10px; }
+.sidebar-actions button { flex: 1; padding: 5px 0; font-size: 12px; }
+
+.tip { margin-top: 14px; color: var(--text-dim); font-size: 12px; line-height: 1.6; }
+
+#map { flex: 1; background: var(--bg); }
+.leaflet-container { background: var(--bg); }
+
+/* ===== 팝업 ===== */
+.leaflet-popup-content-wrapper, .leaflet-popup-tip {
+  background: var(--panel);
+  color: var(--text);
+}
+
+.popup-title { font-weight: bold; font-size: 14px; margin-bottom: 2px; }
+.popup-cat { font-size: 12px; margin-bottom: 6px; }
+.popup-desc { font-size: 13px; color: var(--text-dim); margin-bottom: 8px; }
+.popup-actions { display: flex; gap: 6px; }
+.popup-actions button { font-size: 12px; padding: 4px 10px; }
+.popup-actions .done-btn.is-done { background: #2e7d32; border-color: #2e7d32; }
+.popup-actions .del-btn { background: #7d2e2e; border-color: #7d2e2e; }
+
+/* ===== 관리자 패널 ===== */
+#adminPanel {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  width: 240px;
+  padding: 14px;
+  background: var(--panel);
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  box-shadow: 0 6px 24px #0008;
+  z-index: 1000;
+}
+
+#adminPanel h3 { font-size: 14px; margin-bottom: 10px; }
+
+#adminPanel label {
+  display: block;
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+
+#adminPanel select, #adminPanel input {
+  display: block;
+  width: 100%;
+  margin-top: 3px;
+}
+
+.hidden { display: none !important; }
