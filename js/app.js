@@ -168,6 +168,7 @@ async function selectMap(mapId) {
   }
   state.map.setMaxBounds(L.latLngBounds(bounds).pad(0.5));
   // 콘텐츠(마커) 영역으로 맞춤 — 빈 여백 로딩을 줄이고 화면도 딱 맞음
+  state.map.setMinZoom(-8); // 잠시 풀어서 fitBounds가 자유롭게 맞추게
   const list = markersFor(mapId);
   if (list.length) {
     let minLat = Infinity, maxLat = -Infinity, minLng = Infinity, maxLng = -Infinity;
@@ -179,6 +180,8 @@ async function selectMap(mapId) {
   } else {
     state.map.fitBounds(bounds);
   }
+  // 콘텐츠 전체가 보이는 지점보다 더 축소 못 하게 (마커가 색 점처럼 뭉치는 구간 차단)
+  state.map.setMinZoom(state.map.getZoom() - 0.5);
 
   buildAdminCats();
   renderFilters();
@@ -229,8 +232,7 @@ function popupHtml(m) {
     h += '<button class="del-btn" onclick="__deleteCustom(\'' + m.id + '\')">삭제</button>';
   return h + "</div>";
 }
-const ICON_LIMIT = 400;   // 화면에 이보다 많으면 가벼운 점으로 (밀집 성능)
-const MAX_RENDER = 2000;  // 이보다 많으면 렌더 생략 + "확대" 힌트 (대륙 오버뷰)
+const MAX_RENDER = 2000;  // 화면에 이보다 많으면 렌더 생략 + "확대" 힌트 (색 점 대신)
 function renderMarkers() {
   if (!state.currentMapId) return;
   state.layer.clearLayers();
@@ -246,20 +248,9 @@ function renderMarkers() {
   }
   const hint = document.getElementById("zoomHint");
   if (hint) hint.classList.toggle("hidden", !overflow);
-  if (overflow) return; // 너무 많음: 렌더 생략, 확대 유도
-  const useIcons = vis.length <= ICON_LIMIT;
-  for (const m of vis) {
-    const done = !!state.done[m.id];
-    let cm;
-    if (useIcons) {
-      cm = L.marker([m.lat, m.lng], { icon: leafIcon(m.cat), opacity: done ? 0.4 : 1, keyboard: false });
-    } else {
-      const c = catDef(state.currentMapId, m.cat);
-      cm = L.circleMarker([m.lat, m.lng], {
-        radius: 6, fillColor: c.color, fillOpacity: done ? 0.3 : 0.9,
-        color: "#fff", weight: 1.5, opacity: done ? 0.4 : 1,
-      });
-    }
+  if (overflow) return; // 너무 많음: 렌더 생략, 확대 유도 (색 점으로 바꾸지 않음)
+  for (const m of vis) { // 항상 아이콘 마커
+    const cm = L.marker([m.lat, m.lng], { icon: leafIcon(m.cat), opacity: state.done[m.id] ? 0.4 : 1, keyboard: false });
     cm.bindPopup(() => popupHtml(m));
     cm.addTo(state.layer);
     state.leafletById[m.id] = cm;
