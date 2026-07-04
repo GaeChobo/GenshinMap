@@ -374,10 +374,12 @@ function renderFilters() {
     const anyOn = items.some((i) => !hidden.has(i.id));
 
     const gEl = document.createElement("div");
-    gEl.className = "grp" + (RENEWABLE_GROUPS.has(gName) ? " renew" : "");
+    gEl.className = "grp collapsed" + (RENEWABLE_GROUPS.has(gName) ? " renew" : ""); // 기본 접힘
 
     const head = document.createElement("div");
     head.className = "grp-head";
+    head.setAttribute("role", "button");
+    head.setAttribute("aria-expanded", "false");
     const gcb = document.createElement("input");
     gcb.type = "checkbox"; gcb.checked = anyOn;
     gcb.addEventListener("click", (e) => {
@@ -391,14 +393,14 @@ function renderFilters() {
     const gcount = document.createElement("span");
     gcount.className = "count"; gcount.textContent = total;
     const caret = document.createElement("span");
-    caret.className = "caret"; caret.textContent = "▸";
+    caret.className = "caret"; // 화살표는 CSS(.caret::before)가 그림, 회전으로 상태 표시
 
     head.append(caret, gcb, gtitle, gcount);
     const body = document.createElement("div");
-    body.className = "grp-body hidden";
+    body.className = "grp-body";
     head.addEventListener("click", () => {
-      body.classList.toggle("hidden");
-      caret.textContent = body.classList.contains("hidden") ? "▸" : "▾";
+      const collapsed = gEl.classList.toggle("collapsed");
+      head.setAttribute("aria-expanded", String(!collapsed));
     });
 
     for (const it of items) {
@@ -443,7 +445,9 @@ function updateStats() {
   const list = markersFor(state.currentMapId)
     .filter((m) => !hidden.has(m.cat) && !isRenewable(state.currentMapId, m.cat));
   const done = list.filter((m) => state.done[m.id]).length;
-  document.getElementById("stats").textContent = "수집 " + done + " / " + list.length;
+  const el = document.getElementById("stats");
+  el.textContent = "수집 " + done + " / " + list.length;
+  el.style.setProperty("--pct", (list.length ? Math.round((done / list.length) * 100) : 0) + "%");
 }
 
 // ===== 관리자 폼 카테고리 =====
@@ -491,6 +495,9 @@ function toggleAdmin() {
   state.admin = !state.admin;
   if (!state.admin && state.editingId) cancelEdit();
   document.body.classList.toggle("admin", state.admin);
+  const at = document.getElementById("adminToggle");
+  at.setAttribute("aria-pressed", String(state.admin));
+  at.classList.toggle("is-active", state.admin);
   document.getElementById("adminPanel").classList.toggle("hidden", !state.admin);
   document.getElementById("exportBtn").classList.toggle("hidden", !state.admin);
   document.getElementById("clearCustomBtn").classList.toggle("hidden", !state.admin);

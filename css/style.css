@@ -1,212 +1,957 @@
-* { box-sizing: border-box; margin: 0; padding: 0; }
+/* ============================================================================
+   원신 맵 (Genshin Map) — Theme & Component Stylesheet
+   Drop-in replacement for css/style.css
+   Vanilla HTML/CSS/JS + Leaflet. Keeps every existing id/class hook.
+   Light (parchment + gold) / Dark (deep navy + gold·teal). Auto + toggle.
+   Fonts are optional (Google Fonts) — layout never breaks without them.
+   ========================================================================= */
 
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;600;700&family=Noto+Sans+KR:wght@400;500;700&family=Cinzel:wght@600;700&display=swap');
+
+/* ---------------------------------------------------------------------------
+   1. DESIGN TOKENS
+   Light is the default (:root). Dark applies via prefers-color-scheme when the
+   user hasn't chosen, and always via [data-theme="dark"] when they have.
+   ------------------------------------------------------------------------- */
 :root {
-  --bg: #14171f;
-  --panel: #1d2230;
-  --panel-border: #2c3347;
-  --text: #e8eaf0;
-  --text-dim: #9aa3b8;
-  --accent: #5ba8f5;
+  /* Element / category accent colors — stable across both themes */
+  --el-anemo:   #2E9E8C;   /* 바람 청록 */
+  --el-pyro:    #E1602F;   /* 불   주황 */
+  --el-hydro:   #2A83DE;   /* 물   파랑 */
+  --el-electro: #9556C9;   /* 번개 보라 */
+  --el-cryo:    #63BCD8;   /* 얼음 하늘 */
+  --el-geo:     #D3A02F;   /* 바위 노랑 */
+  --el-dendro:  #7AB23F;   /* 풀   연두 */
+
+  /* Surfaces — Fontaine Frost (cool blue-white) */
+  --bg:            #E2E8F1;                    /* page behind the map */
+  --map-shade:     rgba(20, 32, 60, .05);      /* subtle wash over #map */
+  --panel:         rgba(255, 255, 255, .85);   /* translucent floating panel */
+  --panel-solid:   #FBFCFF;                    /* opaque panel (popups, dropdowns) */
+  --panel-sunken:  rgba(30, 44, 72, .05);      /* inset rows, inputs */
+  --overlay-scrim: rgba(20, 32, 60, .36);      /* mobile drawer backdrop */
+
+  /* Ink / text — deep navy */
+  --ink:        #1E2A44;
+  --ink-soft:   #4E5C78;
+  --ink-faint:  #8791A8;
+  --on-metal:    #FFFFFF;                       /* text on metal fills */
+
+  /* Metal — the brand ornament (indigo in Frost theme) */
+  --metal:       #3A57BE;
+  --metal-bright:#4A69D2;
+  --metal-soft:  #B6C3EC;
+
+  /* Accent — primary interactive (cyan) */
+  --accent:        #148FA6;
+  --accent-strong: #0E7484;
+  --accent-tint:   rgba(20, 143, 166, .13);
+
+  /* Lines & separators */
+  --border:      rgba(58, 87, 190, .26);
+  --border-soft: rgba(58, 87, 190, .14);
+  --hairline:    rgba(58, 87, 190, .40);
+
+  /* State */
+  --ok:    #148FA6;
+  --warn:  #D3A02F;
+  --danger:#C4482F;
+
+  /* Elevation — kept light for performance (thousands of markers) */
+  --shadow-sm:    0 1px 3px rgba(20, 34, 66, .10);
+  --shadow-panel: 0 6px 22px rgba(20, 34, 66, .14);
+  --shadow-pop:   0 8px 26px rgba(20, 34, 66, .20);
+  --marker-shadow:0 1px 2px rgba(0,0,0,.30);   /* single tiny shadow per pin */
+
+  /* Radius */
+  --r-xs: 5px;
+  --r-sm: 8px;
+  --r-md: 11px;
+  --r-lg: 14px;
+  --r-pill: 999px;
+
+  /* Spacing scale (4px base) */
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
+  --sp-5: 20px; --sp-6: 24px; --sp-8: 32px; --sp-10: 40px;
+
+  /* Type */
+  --font-body: "Noto Sans KR", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Noto Serif KR", "Cinzel", Georgia, serif;
+  --font-mono: ui-monospace, "SFMono-Regular", "Consolas", monospace;
+
+  /* Layout metrics */
+  --topbar-h: 56px;
+  --sidebar-w: 288px;
+
+  --ease: cubic-bezier(.2, .7, .3, 1); /* @kind other */
+  color-scheme: light;
 }
 
-html, body { height: 100%; }
+/* Dark palette — shared block reused by auto + manual */
+:root[data-theme="dark"],
+:root[data-theme="dark"] .leaflet-popup {
+  --bg:            #0C1120;
+  --map-shade:     rgba(2, 6, 16, .22);
+  --panel:         rgba(24, 32, 52, .86);
+  --panel-solid:   #19223A;
+  --panel-sunken:  rgba(0, 0, 0, .26);
+  --overlay-scrim: rgba(2, 6, 16, .62);
+
+  --ink:        #E7EBF4;
+  --ink-soft:   #A0AAC4;
+  --ink-faint:  #6C7794;
+  --on-metal:    #FFFFFF;
+
+  --metal:       #4A61D0;
+  --metal-bright:#5F76E4;
+  --metal-soft:  #33407A;
+
+  --accent:        #3FC5D6;
+  --accent-strong: #5FD6E4;
+  --accent-tint:   rgba(63, 197, 214, .16);
+
+  --border:      rgba(110, 130, 220, .24);
+  --border-soft: rgba(110, 130, 220, .14);
+  --hairline:    rgba(110, 130, 220, .38);
+
+  --shadow-sm:    0 1px 3px rgba(0, 0, 0, .40);
+  --shadow-panel: 0 8px 26px rgba(0, 0, 0, .46);
+  --shadow-pop:   0 10px 30px rgba(0, 0, 0, .56);
+  --marker-shadow:0 1px 3px rgba(0,0,0,.55);
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-theme="auto"] {
+    --bg:            #0C1120;
+    --map-shade:     rgba(2, 6, 16, .22);
+    --panel:         rgba(24, 32, 52, .86);
+    --panel-solid:   #19223A;
+    --panel-sunken:  rgba(0, 0, 0, .26);
+    --overlay-scrim: rgba(2, 6, 16, .62);
+    --ink:        #E7EBF4;
+    --ink-soft:   #A0AAC4;
+    --ink-faint:  #6C7794;
+    --on-metal:    #FFFFFF;
+    --metal:       #4A61D0;
+    --metal-bright:#5F76E4;
+    --metal-soft:  #33407A;
+    --accent:        #3FC5D6;
+    --accent-strong: #5FD6E4;
+    --accent-tint:   rgba(63, 197, 214, .16);
+    --border:      rgba(110, 130, 220, .24);
+    --border-soft: rgba(110, 130, 220, .14);
+    --hairline:    rgba(110, 130, 220, .38);
+    --shadow-sm:    0 1px 3px rgba(0, 0, 0, .40);
+    --shadow-panel: 0 8px 26px rgba(0, 0, 0, .46);
+    --shadow-pop:   0 10px 30px rgba(0, 0, 0, .56);
+    --marker-shadow:0 1px 3px rgba(0,0,0,.55);
+    color-scheme: dark;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   2. BASE
+   ------------------------------------------------------------------------- */
+* { box-sizing: border-box; }
+
+[hidden] { display: none !important; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+}
 
 body {
-  display: flex;
-  flex-direction: column;
-  background: var(--bg);
-  color: var(--text);
-  font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+  font-family: var(--font-body);
   font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
-/* ===== 상단 바 ===== */
+h1, h2, h3 { font-family: var(--font-display); margin: 0; font-weight: 600; }
+
+a { color: var(--accent-strong); }
+
+::selection { background: var(--accent-tint); }
+
+/* Focus ring — visible for keyboard users, quiet for mouse */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--r-xs);
+}
+:focus:not(:focus-visible) { outline: none; }
+
+/* Scrollbars */
+* { scrollbar-width: thin; scrollbar-color: var(--hairline) transparent; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb {
+  background: var(--hairline);
+  border-radius: var(--r-pill);
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--metal); background-clip: content-box; }
+
+/* ---------------------------------------------------------------------------
+   3. APP SHELL & MAP
+   Map is the hero and always fills the viewport; UI floats over it.
+   ------------------------------------------------------------------------- */
+#map {
+  position: absolute;
+  inset: var(--topbar-h) 0 0 0;   /* below topbar, edge to edge */
+  width: auto;
+  height: auto;
+  background: var(--bg);
+  z-index: 1;
+}
+
+/* Optional wrapper if you add one: .app > #topbar + #sidebar + #map */
+.app { position: fixed; inset: 0; }
+
+/* ---------------------------------------------------------------------------
+   4. SHARED CONTROLS — buttons, inputs, selects, checkboxes
+   ------------------------------------------------------------------------- */
+button,
+.btn {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+  background: var(--panel-solid);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 7px 13px;
+  min-height: 34px;
+  cursor: pointer;
+  transition: background .14s var(--ease), border-color .14s var(--ease), transform .06s var(--ease);
+  white-space: nowrap;
+}
+button:hover, .btn:hover { border-color: var(--hairline); background: var(--accent-tint); }
+button:active, .btn:active { transform: translateY(1px); }
+button:disabled { opacity: .5; cursor: not-allowed; }
+
+/* Primary / accent button */
+.btn-primary,
+#loginSend,
+#adminPanel button[type="submit"] {
+  color: var(--on-metal);
+  background: linear-gradient(180deg, var(--metal-bright), var(--metal));
+  border-color: var(--metal);
+  font-weight: 700;
+}
+.btn-primary:hover,
+#loginSend:hover,
+#adminPanel button[type="submit"]:hover { background: var(--metal-bright); border-color: var(--metal-bright); }
+
+/* Ghost / subtle */
+.btn-ghost { background: transparent; }
+
+input[type="text"],
+input[type="email"],
+input[type="search"],
+input:not([type]),
+textarea,
+select {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--ink);
+  background: var(--panel-sunken);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 8px 11px;
+  min-height: 36px;
+  width: 100%;
+  transition: border-color .14s var(--ease), box-shadow .14s var(--ease);
+}
+input::placeholder, textarea::placeholder { color: var(--ink-faint); }
+input:focus, textarea:focus, select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-tint);
+  outline: none;
+}
+
+/* Pretty native select with a gold chevron */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 34px;
+  cursor: pointer;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--metal) 50%),
+    linear-gradient(135deg, var(--metal) 50%, transparent 50%);
+  background-position: calc(100% - 17px) 50%, calc(100% - 12px) 50%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+select option { background: var(--panel-solid); color: var(--ink); }
+
+/* Checkboxes — state shown by BOTH color and shape (a check glyph) for AA */
+input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  min-height: 18px;
+  flex: 0 0 auto;
+  margin: 0;
+  border: 1.5px solid var(--hairline);
+  border-radius: var(--r-xs);
+  background: var(--panel-sunken);
+  display: inline-grid;
+  place-content: center;
+  cursor: pointer;
+  transition: background .12s var(--ease), border-color .12s var(--ease);
+}
+input[type="checkbox"]::after {
+  content: "";
+  width: 10px; height: 10px;
+  transform: scale(0);
+  transition: transform .12s var(--ease);
+  background: var(--on-metal);
+  clip-path: polygon(14% 44%, 0 60%, 40% 100%, 100% 22%, 86% 8%, 40% 72%);
+}
+input[type="checkbox"]:checked {
+  background: linear-gradient(180deg, var(--metal-bright), var(--metal));
+  border-color: var(--metal);
+}
+input[type="checkbox"]:checked::after { transform: scale(1); }
+
+label { cursor: pointer; }
+
+/* ---------------------------------------------------------------------------
+   5. TOP BAR  #topbar
+   ------------------------------------------------------------------------- */
 #topbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: var(--topbar-h);
+  z-index: 1200;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 14px;
+  gap: var(--sp-3);
+  padding: 0 var(--sp-4);
   background: var(--panel);
-  border-bottom: 1px solid var(--panel-border);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
 }
 
-#topbar h1 { font-size: 17px; margin-right: 6px; }
-
-#topbar .spacer { flex: 1; }
-
-#stats { color: var(--text-dim); font-size: 13px; }
-
-select, input, button {
-  background: #262c3d;
-  color: var(--text);
-  border: 1px solid var(--panel-border);
-  border-radius: 6px;
-  padding: 6px 10px;
-  font-size: 13px;
-  font-family: inherit;
+#topbar h1 {
+  font-size: 19px;
+  letter-spacing: .01em;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  white-space: nowrap;
+}
+/* Gilt emblem before the title (pure CSS, no asset needed) */
+#topbar h1::before {
+  content: "";
+  width: 22px; height: 22px;
+  flex: 0 0 auto;
+  background: radial-gradient(circle at 50% 40%, var(--metal-bright), var(--metal) 70%);
+  clip-path: polygon(50% 0, 61% 35%, 100% 50%, 61% 65%, 50% 100%, 39% 65%, 0 50%, 39% 35%);
+  box-shadow: var(--shadow-sm);
 }
 
-button { cursor: pointer; }
-button:hover { border-color: var(--accent); }
+#mapSelect {
+  width: auto;
+  min-width: 150px;
+  min-height: 38px;
+  font-weight: 500;
+  background-color: var(--panel-solid);
+  box-shadow: var(--shadow-sm);
+}
 
-body.admin #adminToggle {
+/* Progress  #stats — rendered as a labelled bar */
+#stats {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ink-soft);
+  padding: 4px 10px 4px 6px;
+  background: var(--panel-sunken);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-pill);
+  white-space: nowrap;
+}
+/* JS can set --pct (0–100) on #stats to fill the bar */
+#stats::before {
+  content: "";
+  width: 84px; height: 7px;
+  border-radius: var(--r-pill);
+  background:
+    linear-gradient(90deg, var(--metal-bright), var(--accent)) 0/ var(--pct, 0%) 100% no-repeat,
+    var(--panel-sunken);
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+
+#syncStatus {
+  font-size: 12px;
+  color: var(--ink-faint);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+#syncStatus::before {
+  content: "";
+  width: 7px; height: 7px;
+  border-radius: 50%;
   background: var(--accent);
-  color: #0e1118;
-  border-color: var(--accent);
-  font-weight: bold;
+  box-shadow: 0 0 0 3px var(--accent-tint);
 }
 
-/* ===== 로그인 ===== */
-#authArea { position: relative; }
-.sync-status { color: var(--text-dim); font-size: 12px; min-width: 60px; }
-#userBox { display: flex; align-items: center; gap: 8px; }
-#userEmail { color: var(--text-dim); font-size: 13px; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* push auth/admin group to the right */
+#authArea { margin-left: auto; }
+#authArea, .topbar-right {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.topbar-right { margin-left: auto; }
+#authArea + #adminToggle,
+#adminToggle, #exportBtn, #clearCustomBtn { flex: 0 0 auto; }
 
+/* Admin toggle active state */
+#adminToggle.is-active,
+#adminToggle[aria-pressed="true"] {
+  color: var(--on-metal);
+  background: linear-gradient(180deg, var(--metal-bright), var(--metal));
+  border-color: var(--metal);
+}
+
+/* Login popover  #loginForm — floats under its trigger */
 #loginForm {
   position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
+  top: calc(var(--topbar-h) - 6px);
+  right: var(--sp-4);
   width: 260px;
-  padding: 14px;
-  background: var(--panel);
-  border: 1px solid var(--panel-border);
-  border-radius: 10px;
-  box-shadow: 0 6px 24px #0008;
-  z-index: 1200;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-4);
+  background: var(--panel-solid);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-pop);
+  z-index: 1300;
 }
-#loginForm input { display: block; width: 100%; margin-bottom: 8px; }
-#loginForm button { width: 100%; }
-#loginForm .tip { margin-top: 8px; }
+#loginForm .tip { margin: 0; }
 
-/* ===== 본문 ===== */
-#main { flex: 1; display: flex; min-height: 0; }
+#userBox {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+#userEmail {
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
+/* Theme toggle (add <button id="themeToggle"> in the topbar) */
+#themeToggle {
+  width: 38px; height: 38px;
+  min-height: 38px;
+  padding: 0;
+  display: inline-grid;
+  place-content: center;
+  border-radius: var(--r-sm);
+  font-size: 16px;
+  line-height: 1;
+}
+
+/* ---------------------------------------------------------------------------
+   6. SIDEBAR  #sidebar
+   ------------------------------------------------------------------------- */
 #sidebar {
-  width: 210px;
-  padding: 14px;
-  background: var(--panel);
-  border-right: 1px solid var(--panel-border);
+  position: fixed;
+  top: var(--topbar-h);
+  left: 0;
+  bottom: 0;
+  width: var(--sidebar-w);
+  z-index: 1100;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  padding: var(--sp-4);
   overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--panel);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border-right: 1px solid var(--border);
+  box-shadow: var(--shadow-panel);
 }
 
-#sidebar h2 { font-size: 14px; margin: 14px 0 8px; color: var(--text-dim); }
-#sidebar h2 .hint { font-size: 11px; font-weight: normal; }
+#sidebar h2 {
+  font-size: 15px;
+  color: var(--ink);
+  margin-top: var(--sp-1);
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+}
+#sidebar h2 small,
+#sidebar h2 .hint { font-family: var(--font-body); font-size: 11px; font-weight: 400; color: var(--ink-faint); }
 
+/* "먹은 것 숨기기" toggle row */
 #hideCompletedRow {
-  display: flex; align-items: center; gap: 8px;
-  padding: 8px 10px; margin-bottom: 10px;
-  background: #262c3d; border: 1px solid var(--panel-border); border-radius: 6px;
-  cursor: pointer; user-select: none; font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: 9px 11px;
+  font-weight: 500;
+  background: var(--panel-sunken);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-sm);
 }
 
-/* 그룹 */
-.grp { border-bottom: 1px solid var(--panel-border); }
-.grp-head {
-  display: flex; align-items: center; gap: 7px;
-  padding: 7px 2px; cursor: pointer; user-select: none;
+.sidebar-actions {
+  display: flex;
+  gap: var(--sp-2);
 }
-.grp-head .caret { width: 12px; color: var(--text-dim); font-size: 10px; }
-.grp-title { font-weight: bold; }
-.grp-body { padding: 2px 0 6px 20px; }
+.sidebar-actions button { flex: 1; }
+
+/* Filter list */
+#filters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+
+.grp {
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  background: var(--panel-sunken);
+}
+.grp.renew { box-shadow: inset 3px 0 0 var(--el-dendro); }
+
+.grp-head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: 8px 10px;
+  cursor: pointer;
+  user-select: none;
+  transition: background .12s var(--ease);
+}
+.grp-head:hover { background: var(--accent-tint); }
+
+.caret {
+  width: 14px; height: 14px;
+  flex: 0 0 auto;
+  color: var(--ink-faint);
+  transition: transform .16s var(--ease);
+  display: inline-grid;
+  place-content: center;
+}
+.caret::before {
+  content: "";
+  width: 6px; height: 6px;
+  border-right: 1.6px solid currentColor;
+  border-bottom: 1.6px solid currentColor;
+  transform: rotate(-45deg);
+  margin-left: -2px;
+}
+/* collapsed state: JS toggles .collapsed on .grp (or [aria-expanded]) */
+.grp.collapsed .caret,
+.grp-head[aria-expanded="false"] .caret { transform: rotate(-90deg); }
+.grp.collapsed .grp-body,
+.grp[aria-expanded="false"] .grp-body { display: none; }
+
+.grp-title {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--ink);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.count {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ink-soft);
+  background: var(--bg);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-pill);
+  padding: 1px 8px;
+  min-width: 24px;
+  text-align: center;
+  flex: 0 0 auto;
+}
+
+.grp-body {
+  display: flex;
+  flex-direction: column;
+  padding: 2px 6px 6px;
+  gap: 1px;
+}
 
 .filter-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 4px 2px;
+  gap: var(--sp-2);
+  padding: 6px 8px;
+  border-radius: var(--r-xs);
   cursor: pointer;
-  user-select: none;
+  transition: background .1s var(--ease);
+  min-height: 34px;
+}
+.filter-row:hover { background: var(--accent-tint); }
+.filter-row > span:not(.count):not(.dot) { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.filter-row .count { background: transparent; border: none; color: var(--ink-faint); padding: 0; text-align: right; }
+
+/* Category icon (small image) and color dot */
+.cat-icon {
+  width: 20px; height: 20px;
+  flex: 0 0 auto;
+  object-fit: contain;
+  border-radius: 50%;
+  background: var(--panel-solid);
+  border: 1.5px solid var(--border-soft);
+  padding: 1px;
+}
+.dot {
+  width: 11px; height: 11px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 20%, transparent);
 }
 
-.filter-row .dot {
+/* Dim a row whose filter is off */
+.filter-row:has(input:not(:checked)) { opacity: .5; }
+.filter-row:has(input:not(:checked)) .cat-icon { filter: grayscale(1); }
+
+.tip {
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: var(--ink-faint);
+  margin: var(--sp-1) 0 0;
+  padding: var(--sp-3);
+  background: var(--panel-sunken);
+  border: 1px dashed var(--border);
+  border-radius: var(--r-sm);
+}
+
+/* ---------------------------------------------------------------------------
+   7. MAP OVERLAYS — zoom hint + Leaflet zoom control
+   ------------------------------------------------------------------------- */
+#zoomHint {
+  position: fixed;
+  top: calc(var(--topbar-h) + var(--sp-3));
+  left: calc(50% + var(--sidebar-w) / 2);
+  transform: translateX(-50%);
+  z-index: 900;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 15px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ink);
+  background: var(--panel);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--metal);
+  border-radius: var(--r-pill);
+  box-shadow: var(--shadow-panel);
+  pointer-events: none;
+}
+
+/* Leaflet zoom control retheme */
+.leaflet-control-zoom {
+  border: 1px solid var(--border) !important;
+  border-radius: var(--r-sm) !important;
+  overflow: hidden;
+  box-shadow: var(--shadow-panel) !important;
+}
+.leaflet-control-zoom a,
+.leaflet-bar a {
+  background: var(--panel-solid) !important;
+  color: var(--ink) !important;
+  border-bottom: 1px solid var(--border-soft) !important;
+  width: 34px !important; height: 34px !important;
+  line-height: 34px !important;
+  font-size: 18px !important;
+  transition: background .12s var(--ease);
+}
+.leaflet-control-zoom a:hover,
+.leaflet-bar a:hover { background: var(--accent-tint) !important; color: var(--accent-strong) !important; }
+.leaflet-bar a:last-child { border-bottom: none !important; }
+.leaflet-control-attribution {
+  background: var(--panel) !important;
+  color: var(--ink-faint) !important;
+  border-radius: var(--r-xs) 0 0 0;
+}
+.leaflet-control-attribution a { color: var(--accent-strong) !important; }
+
+/* ---------------------------------------------------------------------------
+   8. MARKERS  .mk / .mk-badge / .mk-dot
+   Kept lightweight — a single small shadow, no blur — for thousands of pins.
+   .mk-badge gets its category color via inline border-color (set by JS).
+   ------------------------------------------------------------------------- */
+.mk { line-height: 0; }
+
+.mk-badge {
+  position: relative;
+  width: 28px; height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 50% 50% 50% 0;            /* teardrop pin */
+  transform: rotate(-45deg);
+  background: var(--panel-solid);
+  border: 2px solid var(--metal);            /* fallback; JS overrides border-color */
+  box-shadow: var(--marker-shadow);
+  transition: transform .1s var(--ease), filter .1s var(--ease);
+}
+.mk-badge > * { transform: rotate(45deg); }  /* un-rotate the contents */
+.mk-badge img { width: 18px; height: 18px; object-fit: contain; display: block; }
+
+.mk-dot {
   width: 12px; height: 12px;
   border-radius: 50%;
-  border: 2px solid #fff3;
-  flex-shrink: 0;
+  background: currentColor;
 }
 
-.filter-row .count { margin-left: auto; color: var(--text-dim); font-size: 12px; }
+.mk:hover .mk-badge,
+.mk-badge:hover { transform: rotate(-45deg) scale(1.12); z-index: 500; }
 
-.sidebar-actions { display: flex; gap: 6px; margin-top: 10px; }
-.sidebar-actions button { flex: 1; padding: 5px 0; font-size: 12px; }
-
-.tip { margin-top: 14px; color: var(--text-dim); font-size: 12px; line-height: 1.6; }
-
-#map { flex: 1; background: var(--bg); position: relative; }
-.leaflet-container { background: var(--bg); }
-
-#zoomHint {
-  position: absolute; z-index: 500;
-  top: 16px; left: 50%; transform: translateX(-50%);
-  padding: 8px 16px; border-radius: 20px;
-  background: rgba(29, 34, 48, 0.92); border: 1px solid var(--panel-border);
-  color: var(--text); font-size: 13px; pointer-events: none;
+/* Completed markers — faded but still legible; also desaturated for shape-clarity */
+.mk.done .mk-badge,
+.mk-badge.done,
+.mk.is-done .mk-badge {
+  filter: grayscale(.6);
+  opacity: .45;
 }
 
-/* ===== 마커 아이콘 ===== */
-.mk { background: transparent !important; border: none !important; }
-.mk-badge {
-  width: 30px; height: 30px; border-radius: 50%;
-  background: rgba(18, 21, 29, 0.82);
-  border: 2px solid #fff;
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 1px 4px #000b;
+/* ---------------------------------------------------------------------------
+   9. POPUP  Leaflet popup + .popup-* internals
+   ------------------------------------------------------------------------- */
+.leaflet-popup-content-wrapper {
+  background: var(--panel-solid) !important;
+  color: var(--ink) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--r-md) !important;
+  box-shadow: var(--shadow-pop) !important;
+  padding: 0 !important;
 }
-.mk-badge img { width: 20px; height: 20px; object-fit: contain; }
-.mk-badge .mk-dot { width: 12px; height: 12px; border-radius: 50%; }
+.leaflet-popup-content { margin: 0 !important; padding: var(--sp-3) var(--sp-3) var(--sp-2) !important; min-width: 180px; }
+.leaflet-popup-tip { background: var(--panel-solid) !important; border: 1px solid var(--border) !important; box-shadow: none !important; }
+.leaflet-popup-close-button { color: var(--ink-faint) !important; font-size: 18px !important; padding: 6px 8px 0 0 !important; }
+.leaflet-popup-close-button:hover { color: var(--ink) !important; }
 
-.cat-icon { width: 18px; height: 18px; object-fit: contain; border-radius: 4px; flex-shrink: 0; }
-.popup-icon { width: 20px; height: 20px; object-fit: contain; vertical-align: middle; margin-right: 5px; }
-
-/* ===== 팝업 ===== */
-.leaflet-popup-content-wrapper, .leaflet-popup-tip {
-  background: var(--panel);
-  color: var(--text);
+.popup-title {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 14.5px;
+  color: var(--ink);
+  padding-right: 16px;
+}
+.popup-icon {
+  width: 22px; height: 22px;
+  flex: 0 0 auto;
+  object-fit: contain;
+  border-radius: 50%;
+  background: var(--panel-sunken);
+  border: 1px solid var(--border-soft);
+  padding: 1px;
+}
+.popup-cat {
+  display: inline-block;
+  margin-top: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent-strong);
+  background: var(--accent-tint);
+  border-radius: var(--r-pill);
+  padding: 2px 9px;
+}
+.popup-desc {
+  margin: var(--sp-2) 0 0;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-soft);
 }
 
-.popup-title { font-weight: bold; font-size: 14px; margin-bottom: 2px; }
-.popup-cat { font-size: 12px; margin-bottom: 6px; }
-.popup-desc { font-size: 13px; color: var(--text-dim); margin-bottom: 8px; }
-.popup-actions { display: flex; gap: 6px; }
-.popup-actions button { font-size: 12px; padding: 4px 10px; }
-.popup-actions .done-btn.is-done { background: #2e7d32; border-color: #2e7d32; }
-.popup-actions .del-btn { background: #7d2e2e; border-color: #7d2e2e; }
-.popup-actions .edit-btn { background: #2e5a7d; border-color: #2e5a7d; }
+.popup-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-top: var(--sp-3);
+  padding-top: var(--sp-2);
+  border-top: 1px solid var(--border-soft);
+}
+.done-btn {
+  flex: 1;
+  color: var(--on-metal);
+  background: linear-gradient(180deg, var(--metal-bright), var(--metal));
+  border-color: var(--metal);
+  font-weight: 700;
+}
+.done-btn.is-done {
+  color: var(--accent-strong);
+  background: var(--accent-tint);
+  border-color: var(--accent);
+}
+.done-btn.is-done::before { content: "✓ "; }
+.del-btn {
+  color: var(--danger);
+  background: transparent;
+  border-color: var(--border);
+  padding: 7px 10px;
+}
+.del-btn:hover { background: color-mix(in srgb, var(--danger) 12%, transparent); border-color: var(--danger); }
+.renew-note {
+  flex-basis: 100%;
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--el-dendro);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.renew-note::before { content: "↻"; font-weight: 700; }
 
-#adminEditActions { display: flex; gap: 6px; margin-top: 10px; }
-#adminEditActions button { flex: 1; }
-#adminSaveEdit { background: var(--accent); color: #0e1118; border-color: var(--accent); font-weight: bold; }
-.renew-note { font-size: 12px; color: var(--text-dim); align-self: center; }
-
-.grp.renew .grp-title::after { content: " 🔄"; font-size: 11px; }
-
-/* ===== 관리자 패널 ===== */
+/* ---------------------------------------------------------------------------
+   10. ADMIN PANEL  #adminPanel — floating card, bottom-right
+   ------------------------------------------------------------------------- */
 #adminPanel {
   position: fixed;
-  right: 16px;
-  bottom: 16px;
-  width: 240px;
-  padding: 14px;
-  background: var(--panel);
-  border: 1px solid var(--accent);
-  border-radius: 10px;
-  box-shadow: 0 6px 24px #0008;
-  z-index: 1000;
+  right: var(--sp-4);
+  bottom: var(--sp-4);
+  z-index: 1150;
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  padding: var(--sp-4);
+  background: var(--panel-solid);
+  border: 1px solid var(--metal);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-pop);
 }
-
-#adminPanel h3 { font-size: 14px; margin-bottom: 10px; }
-
+#adminPanel h3 {
+  font-size: 15px;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding-bottom: var(--sp-2);
+  border-bottom: 1px solid var(--border-soft);
+}
 #adminPanel label {
   display: block;
-  font-size: 12px;
-  color: var(--text-dim);
-  margin-bottom: 8px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  margin-bottom: 4px;
+}
+#adminPanel .field { display: flex; flex-direction: column; }
+#adminPanel .field + .field { margin-top: var(--sp-1); }
+#adminPanel .tip { margin-top: 0; }
+
+/* ---------------------------------------------------------------------------
+   11. RESPONSIVE — tablet & mobile
+   Sidebar becomes an off-canvas drawer; larger touch targets.
+   ------------------------------------------------------------------------- */
+
+/* Scrim behind the mobile drawer (add <div id="sidebarScrim"> or reuse) */
+#sidebarScrim {
+  position: fixed;
+  inset: 0;
+  z-index: 1050;
+  background: var(--overlay-scrim);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .2s var(--ease), visibility .2s var(--ease);
 }
 
-#adminPanel select, #adminPanel input {
-  display: block;
-  width: 100%;
-  margin-top: 3px;
+/* Hamburger (add <button id="menuToggle"> in the topbar) — hidden on desktop */
+#menuToggle { display: none; }
+
+@media (max-width: 860px) {
+  :root { --sidebar-w: 300px; }
+
+  #menuToggle {
+    display: inline-grid;
+    place-content: center;
+    width: 40px; height: 40px; min-height: 40px;
+    padding: 0;
+    order: -1;
+    font-size: 18px;
+  }
+
+  #zoomHint { left: 50%; }
+
+  /* Off-canvas drawer */
+  #sidebar {
+    transform: translateX(-100%);
+    transition: transform .24s var(--ease);
+    box-shadow: var(--shadow-pop);
+    width: min(86vw, 320px);
+  }
+  body.sidebar-open #sidebar { transform: translateX(0); }
+  body.sidebar-open #sidebarScrim { opacity: 1; visibility: visible; }
+
+  /* Bigger touch targets */
+  .filter-row { min-height: 42px; padding: 9px 10px; }
+  input[type="checkbox"] { width: 22px; height: 22px; min-height: 22px; }
+  input[type="checkbox"]::after { width: 12px; height: 12px; }
+  button, .btn { min-height: 40px; }
+
+  /* Admin panel spans the bottom as a sheet */
+  #adminPanel {
+    left: var(--sp-3);
+    right: var(--sp-3);
+    bottom: var(--sp-3);
+    width: auto;
+  }
+
+  #loginForm { right: var(--sp-3); left: var(--sp-3); width: auto; }
 }
 
+@media (max-width: 560px) {
+  #topbar { gap: var(--sp-2); padding: 0 var(--sp-3); }
+  #topbar h1 { font-size: 16px; }
+  #topbar h1::before { width: 18px; height: 18px; }
+  #mapSelect { min-width: 108px; font-size: 12px; }
+  /* Collapse secondary chrome to keep the bar usable */
+  #syncStatus, #stats::before { display: none; }
+  #stats { padding: 4px 10px; }
+  #exportBtn, #clearCustomBtn { display: none; }  /* reachable inside admin panel */
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}
+
+/* ---------------------------------------------------------------------------
+   12. 기존 JS 호환 (앱 로직이 .hidden 클래스를 토글함)
+   ------------------------------------------------------------------------- */
 .hidden { display: none !important; }
+#syncStatus:empty { display: none; }
+#adminEditActions { display: flex; gap: var(--sp-2); }
+#adminEditActions button { flex: 1; }
