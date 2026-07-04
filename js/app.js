@@ -32,6 +32,7 @@ const state = {
   leafletById: {},
   slicesData: {},           // mapId -> { rows, cols, sliceW, sliceH, grid }
   sliceUpdate: null,        // 현재 슬라이스 맵의 갱신 함수
+  editingId: null,          // 관리자 모드에서 편집 중인 커스텀 마커 id
 };
 state.hidden = (() => {
   const raw = store.get(HIDDEN_KEY, {});
@@ -96,7 +97,7 @@ function initMap() {
     preferCanvas: true, attributionControl: false,
   });
   state.layer = L.layerGroup().addTo(state.map);
-  state.map.on("click", (e) => { if (state.admin) addCustomMarker(e.latlng); });
+  state.map.on("click", (e) => { if (state.admin && !state.editingId) addCustomMarker(e.latlng); });
   state.map.on("moveend", () => {
     if (state.sliceUpdate) state.sliceUpdate(); // 슬라이스 맵: 보이는 조각만 로드
     renderMarkers();                             // 보이는 마커만 다시 그림
@@ -235,8 +236,10 @@ function popupHtml(m) {
     h += '<button class="done-btn ' + (done ? "is-done" : "") + '" onclick="__toggleDone(\'' + m.id + '\')">' +
       (done ? "↩ 되돌리기" : "✓ 먹었음") + "</button>";
   }
-  if (state.admin && isCustom(m.id))
+  if (state.admin && isCustom(m.id)) {
+    h += '<button class="edit-btn" onclick="__editCustom(\'' + m.id + '\')">편집</button>';
     h += '<button class="del-btn" onclick="__deleteCustom(\'' + m.id + '\')">삭제</button>';
+  }
   return h + "</div>";
 }
 const MAX_RENDER = 2000;  // 화면에 이보다 많으면 렌더 생략 + "확대" 힌트 (색 점 대신)
@@ -257,7 +260,18 @@ function renderMarkers() {
   if (hint) hint.classList.toggle("hidden", !overflow);
   if (overflow) return; // 너무 많음: 렌더 생략, 확대 유도 (색 점으로 바꾸지 않음)
   for (const m of vis) { // 항상 아이콘 마커
-    const cm = L.marker([m.lat, m.lng], { icon: leafIcon(m.cat), opacity: state.done[m.id] ? 0.4 : 1, keyboard: false });
+    const custom = isCustom(m.id);
+    const cm = L.marker([m.lat, m.lng], {
+      icon: leafIcon(m.cat), opacity: state.done[m.id] ? 0.4 : 1, keyboard: false,
+      draggable: state.admin && custom, // 관리자 모드: 커스텀 마커 드래그 이동
+    });
+    if (state.admin && custom) {
+      cm.on("dragend", () => {
+        const ll = cm.getLatLng();
+        const c = state.custom.find((x) => x.id === m.id);
+        if (c) { c.lat = Math.round(ll.lat * 10) / 10; c.lng = Math.round(ll.lng * 10) / 10; store.set(CUSTOM_KEY, state.custom); }
+      });
+    }
     cm.bindPopup(() => popupHtml(m));
     cm.addTo(state.layer);
     state.leafletById[m.id] = cm;
@@ -290,8 +304,42 @@ function addCustomMarker(latlng) {
 window.__deleteCustom = function (id) {
   state.custom = state.custom.filter((m) => m.id !== id);
   store.set(CUSTOM_KEY, state.custom);
+  if (state.editingId === id) cancelEdit();
   state.map.closePopup(); renderFilters(); renderMarkers(); updateStats();
 };
+
+// 커스텀 마커 편집: 관리자 패널에 값을 채우고 편집 모드로
+window.__editCustom = function (id) {
+  const m = state.custom.find((x) => x.id === id);
+  if (!m) return;
+  state.editingId = id;
+  document.getElementById("adminCategory").value = m.cat;
+  document.getElementById("adminName").value = m.name || "";
+  document.getElementById("adminDesc").value = m.desc || "";
+  document.getElementById("adminTitle").textContent = "마커 편집";
+  document.getElementById("adminAddHint").classList.add("hidden");
+  document.getElementById("adminEditActions").classList.remove("hidden");
+  state.map.closePopup();
+};
+function saveEdit() {
+  const m = state.custom.find((x) => x.id === state.editingId);
+  if (m) {
+    m.cat = Number(document.getElementById("adminCategory").value);
+    m.name = document.getElementById("adminName").value.trim();
+    m.desc = document.getElementById("adminDesc").value.trim();
+    store.set(CUSTOM_KEY, state.custom);
+  }
+  cancelEdit();
+  renderFilters(); renderMarkers(); updateStats();
+}
+function cancelEdit() {
+  state.editingId = null;
+  document.getElementById("adminName").value = "";
+  document.getElementById("adminDesc").value = "";
+  document.getElementById("adminTitle").textContent = "마커 추가";
+  document.getElementById("adminAddHint").classList.remove("hidden");
+  document.getElementById("adminEditActions").classList.add("hidden");
+}
 
 // ===== 필터 (그룹별) =====
 function groupsFor(mapId) {
@@ -433,6 +481,7 @@ function clearCustom() {
 // ===== 관리자 모드 =====
 function toggleAdmin() {
   state.admin = !state.admin;
+  if (!state.admin && state.editingId) cancelEdit();
   document.body.classList.toggle("admin", state.admin);
   document.getElementById("adminPanel").classList.toggle("hidden", !state.admin);
   document.getElementById("exportBtn").classList.toggle("hidden", !state.admin);
@@ -461,6 +510,8 @@ function boot() {
   });
 
   document.getElementById("adminToggle").addEventListener("click", toggleAdmin);
+  document.getElementById("adminSaveEdit").addEventListener("click", saveEdit);
+  document.getElementById("adminCancelEdit").addEventListener("click", cancelEdit);
   document.getElementById("exportBtn").addEventListener("click", exportMarkers);
   document.getElementById("clearCustomBtn").addEventListener("click", clearCustom);
   document.getElementById("showAllBtn").addEventListener("click", () => setAllFilters(true));

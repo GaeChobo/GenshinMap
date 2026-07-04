@@ -171,6 +171,11 @@ body.admin #adminToggle {
 .popup-actions button { font-size: 12px; padding: 4px 10px; }
 .popup-actions .done-btn.is-done { background: #2e7d32; border-color: #2e7d32; }
 .popup-actions .del-btn { background: #7d2e2e; border-color: #7d2e2e; }
+.popup-actions .edit-btn { background: #2e5a7d; border-color: #2e5a7d; }
+
+#adminEditActions { display: flex; gap: 6px; margin-top: 10px; }
+#adminEditActions button { flex: 1; }
+#adminSaveEdit { background: var(--accent); color: #0e1118; border-color: var(--accent); font-weight: bold; }
 .renew-note { font-size: 12px; color: var(--text-dim); align-self: center; }
 
 .grp.renew .grp-title::after { content: " 🔄"; font-size: 11px; }

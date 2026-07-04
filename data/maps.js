@@ -18,4 +18,7 @@ window.MAPS_LIST = [
   { id: "sacred_mountain", name: "태고의 신성한 산", kind: "tiles",
     tileBase: "https://act-webstatic.hoyoverse.com/map_manage/map/36/bb19ccbed47e8d9dca730050219d0b90/", zoomStyle: "N",
     size: [4096, 4096], minNative: -4, maxNative: -1 },
+  { id: "sea_of_bygone", name: "지난날의 바다", kind: "tiles",
+    tileBase: "https://act-webstatic.hoyoverse.com/map_manage/map/34/9af6a4747bab91f96c598f8e8a9b7ce5/", zoomStyle: "N",
+    size: [4096, 4096], minNative: -4, maxNative: -1 },
 ];

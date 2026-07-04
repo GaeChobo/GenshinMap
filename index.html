@@ -52,7 +52,7 @@
 </div>
 
 <div id="adminPanel" class="hidden">
-  <h3>마커 추가</h3>
+  <h3 id="adminTitle">마커 추가</h3>
   <label>종류
     <select id="adminCategory"></select>
   </label>
@@ -62,7 +62,11 @@
   <label>설명
     <input id="adminDesc" type="text" placeholder="예: 나무 위에 떠 있음">
   </label>
-  <p class="tip">지도를 클릭하면 그 자리에 마커가 추가됩니다.</p>
+  <p id="adminAddHint" class="tip">지도를 클릭하면 마커가 추가됩니다.<br>커스텀 마커는 드래그로 옮기고, 팝업에서 편집할 수 있어요.</p>
+  <div id="adminEditActions" class="hidden">
+    <button id="adminSaveEdit">저장</button>
+    <button id="adminCancelEdit">취소</button>
+  </div>
 </div>
 
 <script src="lib/leaflet.js"></script>
