@@ -384,12 +384,18 @@ function clusterIcon(cat, total, done, collectible) {
   const ratio = collectible && total ? done / total : 0;
   const complete = collectible && done === total;
   const size = total <= 5 ? "sm" : total <= 30 ? "md" : "lg";
-  const px = size === "sm" ? 32 : size === "lg" ? 50 : 40;
+  const px = size === "sm" ? 34 : size === "lg" ? 52 : 42;
+  // 원신맵스식: 아이콘 + "수집/전체"(예 0/7). 리젠 자원은 완료 개념 없어 개수만.
+  const label = collectible ? (done + "/" + total) : String(total);
+  const iconImg = c.icon
+    ? '<img class="mk-cluster-icon" src="' + c.icon + '" alt="" loading="lazy">'
+    : '<span class="mk-cluster-dot" style="background:' + c.color + '"></span>';
   return L.divIcon({
     className: "mk-cluster-host",
     html: '<div class="mk-cluster ' + size + (complete ? " done" : "") +
       '" style="--ratio:' + ratio.toFixed(3) + ";--ring:" + c.color + '">' +
-      '<span class="mk-cluster-inner"><b class="mk-cluster-count">' + total + "</b></span></div>",
+      '<span class="mk-cluster-inner">' + iconImg +
+      '<b class="mk-cluster-count">' + label + "</b></span></div>",
     iconSize: [px, px], iconAnchor: [px / 2, px / 2], popupAnchor: [0, -px / 2],
   });
 }

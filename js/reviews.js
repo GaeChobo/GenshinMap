@@ -30,9 +30,10 @@ window.Reviews = (function () {
 
   // ---- 데이터 ----
   async function list(mapId, markerId) {
+    // select('*') → image_url 컬럼 유무와 무관하게 안전
     const { data, error } = await sb()
       .from("reviews")
-      .select("id,user_id,name,text,created_at")
+      .select("*")
       .eq("map_id", mapId).eq("marker_id", markerId)
       .order("created_at", { ascending: false }).limit(50);
     if (error) {
@@ -41,19 +42,45 @@ window.Reviews = (function () {
     }
     return { rows: data || [] };
   }
-  async function add(mapId, markerId, text) {
+  async function add(mapId, markerId, text, imageUrl) {
     const u = currentUser();
     const name = ((u && u.email) || "").split("@")[0] || "익명";
-    const { data, error } = await sb()
-      .from("reviews")
-      .insert({ map_id: mapId, marker_id: markerId, user_id: u.id, name, text })
-      .select("id,user_id,name,text,created_at").single();
+    const row = { map_id: mapId, marker_id: markerId, user_id: u.id, name, text };
+    if (imageUrl) row.image_url = imageUrl; // 컬럼 없으면 사진 없이(텍스트만)
+    const { data, error } = await sb().from("reviews").insert(row).select("*").single();
     if (error) throw error;
     return data;
   }
   async function remove(id) {
     const { error } = await sb().from("reviews").delete().eq("id", id);
     if (error) throw error;
+  }
+
+  // ---- 사진 업로드 (Supabase Storage: review-photos 버킷) ----
+  // 업로드 전에 최대 1280px로 축소 + webp 변환 → 저장 용량 절약
+  async function downscale(file, max, quality) {
+    max = max || 1280; quality = quality || 0.82;
+    try {
+      const img = await new Promise((res, rej) => {
+        const i = new Image(); i.onload = () => res(i); i.onerror = rej;
+        i.src = URL.createObjectURL(file);
+      });
+      let w = img.naturalWidth, h = img.naturalHeight;
+      if (Math.max(w, h) > max) { const s = max / Math.max(w, h); w = Math.round(w * s); h = Math.round(h * s); }
+      const cv = document.createElement("canvas"); cv.width = w; cv.height = h;
+      cv.getContext("2d").drawImage(img, 0, 0, w, h);
+      const blob = await new Promise((res) => cv.toBlob(res, "image/webp", quality));
+      return blob || file;
+    } catch (e) { return file; }
+  }
+  async function uploadImage(file) {
+    const u = currentUser();
+    const blob = await downscale(file);
+    const path = u.id + "/" + Date.now() + "-" + Math.random().toString(36).slice(2, 7) + ".webp";
+    const { error } = await sb().storage.from("review-photos")
+      .upload(path, blob, { contentType: "image/webp", upsert: false });
+    if (error) throw error;
+    return sb().storage.from("review-photos").getPublicUrl(path).data.publicUrl;
   }
 
   // ---- 렌더 ----
@@ -69,6 +96,8 @@ window.Reviews = (function () {
       (mine ? '<button class="review-del" title="삭제" data-id="' + r.id + '">✕</button>' : "") +
       "</div>" +
       '<div class="review-text">' + esc(r.text) + "</div>" +
+      (r.image_url ? '<a class="review-photo" href="' + esc(r.image_url) + '" target="_blank" rel="noopener">' +
+        '<img src="' + esc(r.image_url) + '" alt="첨부 사진" loading="lazy"></a>' : "") +
       "</div></div>"
     );
   }
@@ -83,8 +112,11 @@ window.Reviews = (function () {
     return (
       '<div class="review-form">' +
       '<textarea class="review-input" rows="1" maxlength="500" placeholder="이 지점에 대한 팁·리뷰 남기기…"></textarea>' +
+      '<label class="review-photo-btn" title="사진 첨부">📷' +
+      '<input class="review-file" type="file" accept="image/*" hidden></label>' +
       '<button class="review-send" type="button">등록</button>' +
-      "</div>"
+      "</div>" +
+      '<div class="review-preview hidden"><img alt="미리보기"><button class="review-preview-x" type="button" title="사진 제거">✕</button></div>'
     );
   }
 
@@ -117,25 +149,48 @@ window.Reviews = (function () {
       formWrap.innerHTML = formHtml();
       const input = formWrap.querySelector(".review-input");
       const send = formWrap.querySelector(".review-send");
+      const fileInput = formWrap.querySelector(".review-file");
+      const preview = formWrap.querySelector(".review-preview");
+      let pickedFile = null;
+
       if (input) {
         input.addEventListener("input", () => { // 자동 높이
           input.style.height = "auto"; input.style.height = Math.min(input.scrollHeight, 90) + "px";
         });
       }
+      // 사진 선택 → 미리보기
+      if (fileInput) {
+        fileInput.addEventListener("change", () => {
+          const f = fileInput.files && fileInput.files[0];
+          if (!f) return;
+          if (f.size > 10 * 1024 * 1024) { alert("사진은 10MB 이하만 가능해요."); fileInput.value = ""; return; }
+          pickedFile = f;
+          preview.querySelector("img").src = URL.createObjectURL(f);
+          preview.classList.remove("hidden");
+        });
+        preview.querySelector(".review-preview-x").addEventListener("click", () => {
+          pickedFile = null; fileInput.value = ""; preview.classList.add("hidden");
+        });
+      }
       if (send) {
         send.addEventListener("click", async () => {
           const text = input.value.trim();
-          if (!text) return;
-          send.disabled = true;
+          if (!text && !pickedFile) return; // 글·사진 둘 다 없으면 무시
+          send.disabled = true; send.textContent = "…";
           try {
-            const row = await add(mapId, markerId, text);
-            input.value = "";
-            // 빈 상태 문구 제거 후 맨 위에 추가
+            let imageUrl = null;
+            if (pickedFile) imageUrl = await uploadImage(pickedFile);
+            const row = await add(mapId, markerId, text, imageUrl);
+            input.value = ""; input.style.height = "auto";
+            pickedFile = null; if (fileInput) fileInput.value = "";
+            if (preview) preview.classList.add("hidden");
             const empty = listEl.querySelector(".review-empty");
             if (empty) listEl.innerHTML = "";
             listEl.insertAdjacentHTML("afterbegin", itemHtml(row));
-          } catch (e) { alert("리뷰 등록 실패: " + (e.message || e)); console.warn(e); }
-          finally { send.disabled = false; }
+          } catch (e) {
+            const msg = /bucket|not found|storage/i.test(e.message || "") ? "사진 저장소가 아직 설정되지 않았어요(관리자 설정 필요)." : (e.message || e);
+            alert("리뷰 등록 실패: " + msg); console.warn(e);
+          } finally { send.disabled = false; send.textContent = "등록"; }
         });
       }
     }
