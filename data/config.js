@@ -5,6 +5,6 @@
 //
 // 비워두면 로그인 없이 이 브라우저(localStorage)에만 저장됩니다.
 window.SUPABASE_CONFIG = {
-  url: "",
-  anonKey: "",
+  url: "https://woshehhrlcbjfqbzeekv.supabase.co",
+  anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indvc2hlaGhybGNiamZxYnplZWt2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMwNTU3OTMsImV4cCI6MjA5ODYzMTc5M30.-5u-b8tcfWrpjYOIBYjj8bm0E522vP-IKkOoo-8t8yA",
 };
