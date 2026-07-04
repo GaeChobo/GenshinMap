@@ -91,6 +91,7 @@ function initMap() {
   });
   state.layer = L.layerGroup().addTo(state.map);
   state.map.on("click", (e) => { if (state.admin) addCustomMarker(e.latlng); });
+  state.map.on("moveend", () => renderMarkers()); // 이동/줌 후 보이는 마커만 다시 그림
 }
 
 async function selectMap(mapId) {
@@ -143,17 +144,29 @@ function markerVisible(m) {
   if (state.hideCompleted && state.done[m.id] && !isRenewable(state.currentMapId, m.cat)) return false;
   return true;
 }
-function markerStyle(m) {
-  const c = catDef(state.currentMapId, m.cat);
-  const done = !!state.done[m.id];
-  return { radius: 7, fillColor: c.color, fillOpacity: done ? 0.3 : 0.9,
-    color: done ? "#888" : "#fff", weight: 2, opacity: done ? 0.5 : 1 };
+// 카테고리별 아이콘(호요랩 CDN). 같은 카테고리는 재사용(성능).
+const iconCache = {};
+function leafIcon(cat) {
+  const c = catDef(state.currentMapId, cat);
+  const key = c.icon || ("dot:" + c.color);
+  if (!iconCache[key]) {
+    const inner = c.icon
+      ? '<img src="' + c.icon + '" alt="" loading="lazy">'
+      : '<span class="mk-dot" style="background:' + c.color + '"></span>';
+    iconCache[key] = L.divIcon({
+      className: "mk",
+      html: '<div class="mk-badge" style="border-color:' + c.color + '">' + inner + "</div>",
+      iconSize: [30, 30], iconAnchor: [15, 15], popupAnchor: [0, -16],
+    });
+  }
+  return iconCache[key];
 }
 function popupHtml(m) {
   const c = catDef(state.currentMapId, m.cat);
   const done = !!state.done[m.id];
   const title = m.name || c.name;
-  let h = '<div class="popup-title">' + esc(title) + "</div>" +
+  const iconImg = c.icon ? '<img class="popup-icon" src="' + c.icon + '" alt="">' : "";
+  let h = '<div class="popup-title">' + iconImg + esc(title) + "</div>" +
     '<div class="popup-cat" style="color:' + c.color + '">● ' + esc(c.name) + "</div>";
   if (m.desc) h += '<div class="popup-desc">' + esc(m.desc) + "</div>";
   h += '<div class="popup-actions">';
@@ -167,12 +180,30 @@ function popupHtml(m) {
     h += '<button class="del-btn" onclick="__deleteCustom(\'' + m.id + '\')">삭제</button>';
   return h + "</div>";
 }
+const ICON_LIMIT = 400; // 화면에 이보다 많으면 가벼운 점으로 (밀집 오버뷰 성능)
 function renderMarkers() {
+  if (!state.currentMapId) return;
   state.layer.clearLayers();
   state.leafletById = {};
+  const b = state.map.getBounds().pad(0.25); // 뷰포트 컬링: 보이는 것만 그림
+  const vis = [];
   for (const m of markersFor(state.currentMapId)) {
     if (!markerVisible(m)) continue;
-    const cm = L.circleMarker([m.lat, m.lng], markerStyle(m));
+    if (b.contains([m.lat, m.lng])) vis.push(m);
+  }
+  const useIcons = vis.length <= ICON_LIMIT;
+  for (const m of vis) {
+    const done = !!state.done[m.id];
+    let cm;
+    if (useIcons) {
+      cm = L.marker([m.lat, m.lng], { icon: leafIcon(m.cat), opacity: done ? 0.4 : 1, keyboard: false });
+    } else {
+      const c = catDef(state.currentMapId, m.cat);
+      cm = L.circleMarker([m.lat, m.lng], {
+        radius: 6, fillColor: c.color, fillOpacity: done ? 0.3 : 0.9,
+        color: "#fff", weight: 1.5, opacity: done ? 0.4 : 1,
+      });
+    }
     cm.bindPopup(() => popupHtml(m));
     cm.addTo(state.layer);
     state.leafletById[m.id] = cm;
@@ -183,12 +214,8 @@ window.__toggleDone = function (id) {
   if (state.done[id]) delete state.done[id]; else state.done[id] = true;
   store.set(DONE_KEY, state.done);
   if (window.Cloud && window.Cloud.enabled) window.Cloud.scheduleSync();
-  if (state.hideCompleted) { state.map.closePopup(); renderMarkers(); }
-  else {
-    const cm = state.leafletById[id];
-    const m = markersFor(state.currentMapId).find((x) => x.id === id);
-    if (cm && m) { cm.setStyle(markerStyle(m)); cm.setPopupContent(popupHtml(m)); }
-  }
+  if (state.hideCompleted) state.map.closePopup();
+  renderMarkers();
   updateStats();
 };
 
@@ -220,7 +247,7 @@ function groupsFor(mapId) {
   const groups = {};
   for (const id of Object.keys(present).map(Number)) {
     const c = catDef(mapId, id), g = c.group || "기타";
-    (groups[g] = groups[g] || []).push({ id, name: c.name, color: c.color, count: present[id] });
+    (groups[g] = groups[g] || []).push({ id, name: c.name, color: c.color, icon: c.icon, count: present[id] });
   }
   for (const g in groups) groups[g].sort((a, b) => b.count - a.count);
   return groups;
@@ -274,11 +301,18 @@ function renderFilters() {
         saveHidden(); renderMarkers(); updateStats();
         gcb.checked = items.some((i) => !hidden.has(i.id));
       });
-      const dot = document.createElement("span");
-      dot.className = "dot"; dot.style.background = it.color;
+      let mark;
+      if (it.icon) {
+        mark = document.createElement("img");
+        mark.className = "cat-icon"; mark.src = it.icon; mark.loading = "lazy";
+        mark.style.borderColor = it.color;
+      } else {
+        mark = document.createElement("span");
+        mark.className = "dot"; mark.style.background = it.color;
+      }
       const nm = document.createElement("span"); nm.textContent = it.name;
       const cnt = document.createElement("span"); cnt.className = "count"; cnt.textContent = it.count;
-      row.append(cb, dot, nm, cnt);
+      row.append(cb, mark, nm, cnt);
       body.appendChild(row);
     }
     gEl.append(head, body);

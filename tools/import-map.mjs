@@ -33,14 +33,14 @@ async function api(ver, pathname, extra = "") {
   return j.data;
 }
 
-// 라벨 트리(v1/v2 구조 모두) → { id: {name, group} } 로 평탄화
+// 라벨 트리(v1/v2 구조 모두) → { id: {name, group, icon} } 로 평탄화
 function flattenLabels(tree, out, group) {
   for (const node of tree || []) {
     const g = group || node.name;
     if (node.id != null && node.name && !(node.children && node.children.length))
-      out[node.id] = { name: node.name, group: g };
+      out[node.id] = { name: node.name, group: g, icon: node.icon || "" };
     if (node.children && node.children.length) flattenLabels(node.children, out, g);
-    else if (node.id != null && node.name) out[node.id] = out[node.id] || { name: node.name, group: g };
+    else if (node.id != null && node.name) out[node.id] = out[node.id] || { name: node.name, group: g, icon: node.icon || "" };
   }
   return out;
 }
@@ -109,8 +109,8 @@ const PALETTE = [
   const catIds = Object.keys(present).map(Number).sort((a, b) => present[b] - present[a]);
   const categories = {};
   catIds.forEach((id, idx) => {
-    const meta = labelMeta[id] || { name: "카테고리 " + id, group: "기타" };
-    categories[id] = { name: meta.name, group: meta.group, color: PALETTE[idx % PALETTE.length], count: present[id] };
+    const meta = labelMeta[id] || { name: "카테고리 " + id, group: "기타", icon: "" };
+    categories[id] = { name: meta.name, group: meta.group, color: PALETTE[idx % PALETTE.length], icon: meta.icon || "", count: present[id] };
   });
   console.log(`  카테고리 ${catIds.length}종`);
 
