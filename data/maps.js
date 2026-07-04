@@ -6,7 +6,13 @@
 window.MAPS_LIST = [
   { id: "teyvat", name: "티바트 대륙", kind: "tiles",
     tileBase: "https://act-webstatic.hoyoverse.com/map_manage/map/2/c0eaef431637950e44ef47dc2ba0c105/", zoomStyle: "N",
-    size: [36864, 16384], minNative: -4, maxNative: -1 },
+    size: [36864, 16384], minNative: -4, maxNative: -1,
+    // 나라(지역) 선택 — 마커의 a(area_id) 기준. 호요랩 순서.
+    areas: [
+      { id: 1, name: "몬드" }, { id: 2, name: "리월" }, { id: 3, name: "이나즈마" },
+      { id: 4, name: "수메르" }, { id: 8, name: "폰타인" }, { id: 11, name: "나타" },
+      { id: 13, name: "노드크라이" },
+    ] },
   { id: "enkanomiya", name: "연하궁", image: "maps/enkanomiya.jpeg", size: [4096, 4096] },
   { id: "chasm_underground", name: "층암거연·지하 광갱", image: "maps/chasm_underground.jpeg", size: [4096, 4096] },
   { id: "frostmoon", name: "서리달", kind: "tiles",

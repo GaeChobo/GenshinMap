@@ -16,6 +16,7 @@ const DONE_KEY = "gmap_done_v1";
 const CUSTOM_KEY = "gmap_custom_v1";
 const HIDDEN_KEY = "gmap_hidden_v3"; // v3: 기본 필터를 워프 지점만 켜기로 변경
 const HIDECOMPLETE_KEY = "gmap_hidecomplete_v1";
+const AREA_KEY = "gmap_area_v1"; // 지도별 선택된 지역(나라). 0 = 전체
 
 // ===== 상태 =====
 const state = {
@@ -33,6 +34,7 @@ const state = {
   slicesData: {},           // mapId -> { rows, cols, sliceW, sliceH, grid }
   sliceUpdate: null,        // 현재 슬라이스 맵의 갱신 함수
   editingId: null,          // 관리자 모드에서 편집 중인 커스텀 마커 id
+  areaSel: store.get(AREA_KEY, {}), // mapId -> 선택된 area_id (0/없음 = 전체)
 };
 state.hidden = (() => {
   const raw = store.get(HIDDEN_KEY, {});
@@ -77,6 +79,28 @@ function loadImageSize(url) {
 }
 function markersFor(mapId) {
   return (state.baseMarkers[mapId] || []).concat(state.custom.filter((m) => m.map === mapId));
+}
+// ===== 지역(나라) =====
+// teyvat처럼 areas가 있는 지도는 나라별로 나눠서 보여줌. 마커의 m.a(area_id) 기준.
+function mapAreas(mapId) {
+  const d = MAPS_LIST.find((m) => m.id === mapId);
+  return d && d.areas && d.areas.length ? d.areas : null;
+}
+function currentArea() {
+  if (!mapAreas(state.currentMapId)) return 0;
+  return state.areaSel[state.currentMapId] || 0; // 0 = 전체
+}
+// 현재 선택 지역에 속하는가 (전체면 항상 true, 커스텀 마커는 지역 무관하게 항상 표시)
+function inArea(m) {
+  const a = currentArea();
+  if (!a) return true;
+  return m.a === a || isCustom(m.id);
+}
+// 특정 지역(또는 전체)의 마커 목록 — fitBounds/집계용 (커스텀 제외해도 무방)
+function areaMarkers(mapId) {
+  const a = state.areaSel[mapId] || 0;
+  const all = markersFor(mapId);
+  return a ? all.filter((m) => m.a === a) : all;
 }
 function catsFor(mapId) { return state.cats[mapId] || {}; }
 function catDef(mapId, id) { return catsFor(mapId)[id] || { name: "카테고리 " + id, group: "기타", color: "#b98ce0" }; }
@@ -137,6 +161,35 @@ function makeSliceLayer(mapId) {
   return group;
 }
 
+// 지역(나라) 선택 드롭다운 채우기 — areas 있는 지도만 표시
+function populateAreaSelect(mapId) {
+  const sel = document.getElementById("areaSelect");
+  const areas = mapAreas(mapId);
+  if (!areas) { sel.classList.add("hidden"); sel.innerHTML = ""; return; }
+  // 첫 방문 시 기본값 = 첫 나라 (호요랩처럼). 이미 고른 값이 있으면 유지.
+  if (!(mapId in state.areaSel)) { state.areaSel[mapId] = areas[0].id; store.set(AREA_KEY, state.areaSel); }
+  sel.innerHTML = "";
+  const optAll = document.createElement("option");
+  optAll.value = "0"; optAll.textContent = "🗺 전체";
+  sel.appendChild(optAll);
+  for (const a of areas) {
+    const o = document.createElement("option"); o.value = a.id; o.textContent = a.name; sel.appendChild(o);
+  }
+  sel.value = String(state.areaSel[mapId] || 0);
+  sel.classList.remove("hidden");
+}
+// 선택 지역으로 화면 맞춤 (minZoom은 대륙 기준 유지 → 언제든 축소 가능)
+function fitToArea() {
+  const list = areaMarkers(state.currentMapId);
+  if (!list.length) return;
+  let minLat = Infinity, maxLat = -Infinity, minLng = Infinity, maxLng = -Infinity;
+  for (const m of list) {
+    if (m.lat < minLat) minLat = m.lat; if (m.lat > maxLat) maxLat = m.lat;
+    if (m.lng < minLng) minLng = m.lng; if (m.lng > maxLng) maxLng = m.lng;
+  }
+  state.map.fitBounds([[minLat, minLng], [maxLat, maxLng]], { padding: [30, 30] });
+}
+
 async function selectMap(mapId) {
   const def = MAPS_LIST.find((m) => m.id === mapId);
   if (!def) return;
@@ -159,6 +212,7 @@ async function selectMap(mapId) {
     state.hidden[mapId] = h2;
     saveHidden();
   }
+  populateAreaSelect(mapId); // 지역 선택기(기본 나라 설정 포함) — 필터/렌더 전에
 
   if (state.overlay) { state.overlay.remove(); state.overlay = null; }
   state.sliceUpdate = null;
@@ -198,6 +252,7 @@ async function selectMap(mapId) {
   }
   // 콘텐츠 전체가 보이는 지점보다 더 축소 못 하게 (원신맵스처럼 대륙이 화면에 꽉 차는 정도까지만)
   state.map.setMinZoom(state.map.getZoom() - 0.5);
+  if (currentArea()) fitToArea(); // 특정 나라 선택 시 그 지역으로 초점 (축소는 대륙까지 가능)
 
   buildAdminCats();
   renderFilters();
@@ -298,6 +353,7 @@ function renderMarkers() {
   const cells = new Map();
   let count = 0;
   for (const m of markersFor(state.currentMapId)) {
+    if (!inArea(m)) continue;                       // 지역(나라) 필터
     if (hidden.has(m.cat)) continue;               // 카테고리 필터만(완료는 그룹 계산에 포함)
     if (!b.contains([m.lat, m.lng])) continue;
     if (++count > CLUSTER_CAP) break;
@@ -400,7 +456,11 @@ function cancelEdit() {
 function groupsFor(mapId) {
   const cats = catsFor(mapId);
   const present = {};
-  for (const m of markersFor(mapId)) present[m.cat] = (present[m.cat] || 0) + 1;
+  const a = mapId === state.currentMapId ? currentArea() : 0; // 현재 지도면 선택 지역만 집계
+  for (const m of markersFor(mapId)) {
+    if (a && m.a !== a && !isCustom(m.id)) continue;
+    present[m.cat] = (present[m.cat] || 0) + 1;
+  }
   const groups = {};
   for (const id of Object.keys(present).map(Number)) {
     const c = catDef(mapId, id), g = c.group || "기타";
@@ -490,7 +550,7 @@ function updateStats() {
   const hidden = hiddenSet(state.currentMapId);
   // 완료 집계는 1회성 수집(상자·눈동자 등)만. 리젠 자원(광물·적 등)은 제외.
   const list = markersFor(state.currentMapId)
-    .filter((m) => !hidden.has(m.cat) && !isRenewable(state.currentMapId, m.cat));
+    .filter((m) => inArea(m) && !hidden.has(m.cat) && !isRenewable(state.currentMapId, m.cat));
   const done = list.filter((m) => state.done[m.id]).length;
   const el = document.getElementById("stats");
   el.textContent = "수집 " + done + " / " + list.length;
@@ -563,6 +623,13 @@ function boot() {
     const o = document.createElement("option"); o.value = m.id; o.textContent = m.name; sel.appendChild(o);
   }
   sel.addEventListener("change", () => selectMap(sel.value));
+
+  document.getElementById("areaSelect").addEventListener("change", (e) => {
+    state.areaSel[state.currentMapId] = Number(e.target.value);
+    store.set(AREA_KEY, state.areaSel);
+    fitToArea();
+    renderFilters(); renderMarkers(); updateStats();
+  });
 
   const hc = document.getElementById("hideCompleted");
   hc.checked = state.hideCompleted;
