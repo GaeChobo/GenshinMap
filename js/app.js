@@ -15,7 +15,7 @@ const store = {
 const DONE_KEY = "gmap_done_v1";
 const CUSTOM_KEY = "gmap_custom_v1";
 const HIDDEN_KEY = "gmap_hidden_v3"; // v3: 기본 필터를 워프 지점만 켜기로 변경
-const HIDECOMPLETE_KEY = "gmap_hidecomplete_v1";
+const HIDECOMPLETE_KEY = "gmap_hidecomplete_v2"; // v2: 기본을 "숨김"이 아니라 "희미하게 표시"로
 const AREA_KEY = "gmap_area_v1"; // 지도별 선택된 지역(나라). 0 = 전체
 const LEVEL_KEY = "gmap_level_v1"; // 지도별 지상/지하 필터. all | surface | under
 
@@ -29,7 +29,7 @@ const state = {
   custom: store.get(CUSTOM_KEY, []),
   done: store.get(DONE_KEY, {}),
   hidden: {},               // mapId -> Set(catId)  (끈 카테고리)
-  hideCompleted: store.get(HIDECOMPLETE_KEY, true),
+  hideCompleted: store.get(HIDECOMPLETE_KEY, false), // 기본: 완료해도 숨기지 않고 희미하게
   admin: false,
   leafletById: {},
   slicesData: {},           // mapId -> { rows, cols, sliceW, sliceH, grid }
@@ -445,7 +445,7 @@ function addIndividual(m) {
       if (c) { c.lat = Math.round(ll.lat * 10) / 10; c.lng = Math.round(ll.lng * 10) / 10; store.set(CUSTOM_KEY, state.custom); }
     });
   }
-  cm.bindPopup(() => popupHtml(m), { maxWidth: 340, minWidth: 300, autoPanPadding: [24, 24], keepInView: true });
+  cm.bindPopup(() => popupHtml(m), { maxWidth: 380, minWidth: 340, autoPanPadding: [24, 24], keepInView: true });
   cm.addTo(state.layer);
   state.leafletById[m.id] = cm;
 }

@@ -769,8 +769,8 @@ label { cursor: pointer; }
 }
 .leaflet-popup-content {
   margin: 0 !important; padding: var(--sp-3) var(--sp-3) var(--sp-2) !important;
-  width: 308px !important; min-width: 300px;
-  max-height: min(66vh, 560px); overflow-y: auto; overflow-x: hidden;
+  width: 348px !important; min-width: 340px;
+  max-height: min(74vh, 640px); overflow-y: auto; overflow-x: hidden;
   overscroll-behavior: contain;
 }
 .leaflet-popup-tip { background: var(--panel-solid) !important; border: 1px solid var(--border) !important; box-shadow: none !important; }
@@ -1076,7 +1076,7 @@ label { cursor: pointer; }
 .popup-reviews-head { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; letter-spacing: .04em; color: var(--ink-soft); margin-bottom: var(--sp-2); text-transform: uppercase; }
 .popup-reviews-head .count { color: var(--ink-faint); font-weight: 600; }
 
-.review-list { list-style: none; margin: 0; padding: 0 2px 0 0; display: flex; flex-direction: column; gap: var(--sp-2); max-height: 240px; overflow-y: auto; overscroll-behavior: contain; }
+.review-list { list-style: none; margin: 0; padding: 0 2px 0 0; display: flex; flex-direction: column; gap: var(--sp-3); max-height: 360px; overflow-y: auto; overscroll-behavior: contain; }
 .review-item { display: flex; gap: var(--sp-2); }
 .review-avatar {
   width: 22px; height: 22px; flex: 0 0 auto;
@@ -1246,3 +1246,17 @@ label { cursor: pointer; }
 }
 .review-photo { display: block; margin-top: 6px; }
 .review-photo img { max-width: 100%; max-height: 160px; border-radius: var(--r-sm); border: 1px solid var(--border-soft); display: block; }
+
+/* 리뷰 영역 크게 (가독성) */
+.popup-reviews { margin-top: var(--sp-4); }
+.popup-reviews-head { font-size: 12px; margin-bottom: var(--sp-3); }
+.review-avatar { width: 26px; height: 26px; font-size: 11px; }
+.review-name { font-size: 12.5px; }
+.review-time { font-size: 11px; }
+.review-text { font-size: 13px; line-height: 1.55; margin-top: 3px; }
+.review-photo img { max-width: 100%; max-height: 220px; }
+.review-input { min-height: 40px; height: 40px; max-height: 120px; font-size: 13px; }
+.review-photo-btn { width: 40px; height: 40px; font-size: 17px; }
+.review-send { min-height: 40px; font-size: 13px; }
+.review-empty, .review-login-hint { font-size: 12.5px; padding: 8px 2px; }
+.review-preview img { max-height: 150px; }
