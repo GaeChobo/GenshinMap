@@ -14,7 +14,7 @@ const store = {
 };
 const DONE_KEY = "gmap_done_v1";
 const CUSTOM_KEY = "gmap_custom_v1";
-const HIDDEN_KEY = "gmap_hidden_v2";
+const HIDDEN_KEY = "gmap_hidden_v3"; // v3: 기본 필터를 워프 지점만 켜기로 변경
 const HIDECOMPLETE_KEY = "gmap_hidecomplete_v1";
 
 // ===== 상태 =====
@@ -152,6 +152,14 @@ async function selectMap(mapId) {
   }
   const bounds = [[0, 0], [h, w]];
 
+  // 기본 필터: 첫 방문 시 "워프 지점" 그룹(워프·신상 등)만 켜고 나머지는 끔 (렌더/이벤트 전에)
+  if (!state.hidden[mapId]) {
+    const h2 = new Set(), cats = catsFor(mapId);
+    for (const id of Object.keys(cats)) if (cats[id].group !== "워프 지점") h2.add(Number(id));
+    state.hidden[mapId] = h2;
+    saveHidden();
+  }
+
   if (state.overlay) { state.overlay.remove(); state.overlay = null; }
   state.sliceUpdate = null;
   if (def.kind === "tiles") {
@@ -188,7 +196,7 @@ async function selectMap(mapId) {
   } else {
     state.map.fitBounds(bounds);
   }
-  // 콘텐츠 전체가 보이는 지점보다 더 축소 못 하게 (마커가 색 점처럼 뭉치는 구간 차단)
+  // 콘텐츠 전체가 보이는 지점보다 더 축소 못 하게 (원신맵스처럼 대륙이 화면에 꽉 차는 정도까지만)
   state.map.setMinZoom(state.map.getZoom() - 0.5);
 
   buildAdminCats();
