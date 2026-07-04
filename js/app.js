@@ -229,6 +229,19 @@ function leafIcon(cat) {
   }
   return iconCache[key];
 }
+// 클러스터(가까운 같은 카테고리 마커 묶음) 아이콘 — 카테고리 아이콘 + 개수 배지
+function clusterIcon(cat, count) {
+  const c = catDef(state.currentMapId, cat);
+  const inner = c.icon
+    ? '<img src="' + c.icon + '" alt="" loading="lazy">'
+    : '<span class="mk-dot" style="background:' + c.color + '"></span>';
+  return L.divIcon({
+    className: "mk mk-cluster",
+    html: '<div class="mk-badge" style="border-color:' + c.color + '">' + inner + "</div>" +
+      '<span class="cluster-count">' + count + "</span>",
+    iconSize: [34, 34], iconAnchor: [17, 17], popupAnchor: [0, -18],
+  });
+}
 function popupHtml(m) {
   const c = catDef(state.currentMapId, m.cat);
   const done = !!state.done[m.id];
@@ -250,39 +263,59 @@ function popupHtml(m) {
   }
   return h + "</div>";
 }
-const MAX_RENDER = 2000;  // 화면에 이보다 많으면 렌더 생략 + "확대" 힌트 (색 점 대신)
+const CLUSTER_CELL = 46;   // 클러스터 격자 크기(화면 픽셀). 이 안의 같은 카테고리는 묶임
+const CLUSTER_CAP = 15000; // 화면에 이보다 많으면 렌더 생략 + "확대" 힌트 (안전장치)
+
+function addIndividual(m) {
+  const custom = isCustom(m.id);
+  const cm = L.marker([m.lat, m.lng], {
+    icon: leafIcon(m.cat), opacity: state.done[m.id] ? 0.4 : 1, keyboard: false,
+    draggable: state.admin && custom, // 관리자 모드: 커스텀 마커 드래그 이동
+  });
+  if (state.admin && custom) {
+    cm.on("dragend", () => {
+      const ll = cm.getLatLng();
+      const c = state.custom.find((x) => x.id === m.id);
+      if (c) { c.lat = Math.round(ll.lat * 10) / 10; c.lng = Math.round(ll.lng * 10) / 10; store.set(CUSTOM_KEY, state.custom); }
+    });
+  }
+  cm.bindPopup(() => popupHtml(m));
+  cm.addTo(state.layer);
+  state.leafletById[m.id] = cm;
+}
+
 function renderMarkers() {
   if (!state.currentMapId) return;
   state.layer.clearLayers();
   state.leafletById = {};
-  const b = state.map.getBounds().pad(0.25); // 뷰포트 컬링: 보이는 것만 그림
-  const vis = [];
-  let overflow = false;
+  const zoom = state.map.getZoom();
+  const b = state.map.getBounds().pad(0.25); // 뷰포트 컬링: 보이는 것만 처리
+
+  // 보이는 마커를 화면 격자(카테고리별)로 묶기
+  const cells = new Map();
+  let count = 0;
   for (const m of markersFor(state.currentMapId)) {
     if (!markerVisible(m)) continue;
     if (!b.contains([m.lat, m.lng])) continue;
-    vis.push(m);
-    if (vis.length > MAX_RENDER) { overflow = true; break; }
+    if (++count > CLUSTER_CAP) break;
+    const pt = state.map.project([m.lat, m.lng], zoom);
+    const key = m.cat + ":" + Math.floor(pt.x / CLUSTER_CELL) + ":" + Math.floor(pt.y / CLUSTER_CELL);
+    let cell = cells.get(key);
+    if (!cell) { cell = { cat: m.cat, items: [], sx: 0, sy: 0 }; cells.set(key, cell); }
+    cell.items.push(m); cell.sx += m.lng; cell.sy += m.lat;
   }
+
   const hint = document.getElementById("zoomHint");
-  if (hint) hint.classList.toggle("hidden", !overflow);
-  if (overflow) return; // 너무 많음: 렌더 생략, 확대 유도 (색 점으로 바꾸지 않음)
-  for (const m of vis) { // 항상 아이콘 마커
-    const custom = isCustom(m.id);
-    const cm = L.marker([m.lat, m.lng], {
-      icon: leafIcon(m.cat), opacity: state.done[m.id] ? 0.4 : 1, keyboard: false,
-      draggable: state.admin && custom, // 관리자 모드: 커스텀 마커 드래그 이동
-    });
-    if (state.admin && custom) {
-      cm.on("dragend", () => {
-        const ll = cm.getLatLng();
-        const c = state.custom.find((x) => x.id === m.id);
-        if (c) { c.lat = Math.round(ll.lat * 10) / 10; c.lng = Math.round(ll.lng * 10) / 10; store.set(CUSTOM_KEY, state.custom); }
-      });
-    }
-    cm.bindPopup(() => popupHtml(m));
+  if (count > CLUSTER_CAP) { if (hint) hint.classList.remove("hidden"); return; }
+  if (hint) hint.classList.add("hidden");
+
+  for (const cell of cells.values()) {
+    if (cell.items.length === 1) { addIndividual(cell.items[0]); continue; }
+    // 클러스터: 중심에 개수 배지, 클릭하면 확대(디클러스터)
+    const lat = cell.sy / cell.items.length, lng = cell.sx / cell.items.length;
+    const cm = L.marker([lat, lng], { icon: clusterIcon(cell.cat, cell.items.length), keyboard: false });
+    cm.on("click", () => state.map.setView([lat, lng], Math.min(zoom + 2, state.map.getMaxZoom())));
     cm.addTo(state.layer);
-    state.leafletById[m.id] = cm;
   }
 }
 

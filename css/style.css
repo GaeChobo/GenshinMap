@@ -955,3 +955,15 @@ label { cursor: pointer; }
 #syncStatus:empty { display: none; }
 #adminEditActions { display: flex; gap: var(--sp-2); }
 #adminEditActions button { flex: 1; }
+
+/* 클러스터(개수 배지) — 디자인 리뷰에서 다듬을 예정 */
+.mk-cluster { position: relative; cursor: pointer; }
+.mk-cluster .cluster-count {
+  position: absolute; top: -5px; right: -7px;
+  min-width: 17px; height: 17px; padding: 0 4px;
+  border-radius: var(--r-pill);
+  background: var(--metal); color: var(--on-metal);
+  font-size: 10px; font-weight: 700; line-height: 17px; text-align: center;
+  border: 1.5px solid var(--panel-solid);
+  box-shadow: var(--marker-shadow);
+}
