@@ -30,6 +30,8 @@ const state = {
   hideCompleted: store.get(HIDECOMPLETE_KEY, true),
   admin: false,
   leafletById: {},
+  slicesData: {},           // mapId -> { rows, cols, sliceW, sliceH, grid }
+  sliceUpdate: null,        // 현재 슬라이스 맵의 갱신 함수
 };
 state.hidden = (() => {
   const raw = store.get(HIDDEN_KEY, {});
@@ -43,6 +45,7 @@ function saveHidden() {
 // 데이터 파일이 호출하는 등록 함수
 window.registerMarkers = (mapId, arr) => { state.baseMarkers[mapId] = arr; };
 window.registerCategories = (mapId, obj) => { state.cats[mapId] = obj; };
+window.registerSlices = (mapId, obj) => { state.slicesData[mapId] = obj; };
 
 // ===== 데이터 로딩 =====
 function loadScript(src) {
@@ -53,10 +56,13 @@ function loadScript(src) {
 }
 async function ensureLoaded(mapId) {
   if (state.loaded.has(mapId)) return;
-  await Promise.all([
+  const def = MAPS_LIST.find((m) => m.id === mapId);
+  const loads = [
     loadScript("data/categories/" + mapId + ".js"),
     loadScript("data/markers/" + mapId + ".js"),
-  ]);
+  ];
+  if (def && def.kind === "slices") loads.push(loadScript("data/slices/" + mapId + ".js"));
+  await Promise.all(loads);
   state.baseMarkers[mapId] = state.baseMarkers[mapId] || [];
   state.cats[mapId] = state.cats[mapId] || {};
   state.loaded.add(mapId);
@@ -91,7 +97,43 @@ function initMap() {
   });
   state.layer = L.layerGroup().addTo(state.map);
   state.map.on("click", (e) => { if (state.admin) addCustomMarker(e.latlng); });
-  state.map.on("moveend", () => renderMarkers()); // 이동/줌 후 보이는 마커만 다시 그림
+  state.map.on("moveend", () => {
+    if (state.sliceUpdate) state.sliceUpdate(); // 슬라이스 맵: 보이는 조각만 로드
+    renderMarkers();                             // 보이는 마커만 다시 그림
+  });
+}
+
+// 다중 슬라이스 맵: 보이는 조각만 로드 + 줌에 따라 해상도(LOD) 조절(호요랩 CDN 리사이즈)
+function sliceUrl(base, lod) {
+  return lod ? base + "?x-oss-process=image/resize,w_" + lod : base; // lod=0 → 원본
+}
+function lodFor(zoom, sliceW) {
+  const screenPx = sliceW * Math.pow(2, zoom); // 조각이 화면에 그려질 픽셀 폭
+  if (screenPx <= 600) return 512;
+  if (screenPx <= 1200) return 1024;
+  return 0; // 원본
+}
+function makeSliceLayer(mapId) {
+  const sd = state.slicesData[mapId];
+  const group = L.layerGroup();
+  let shown = {};
+  let curLod = -1;
+  state.sliceUpdate = function () {
+    if (!sd) return;
+    const lod = lodFor(state.map.getZoom(), sd.sliceW);
+    if (lod !== curLod) { group.clearLayers(); shown = {}; curLod = lod; } // 해상도 변경 → 다시 로드
+    const vb = state.map.getBounds().pad(0.5);
+    for (let r = 0; r < sd.rows; r++) for (let c = 0; c < sd.cols; c++) {
+      const y0 = r * sd.sliceH, x0 = c * sd.sliceW, key = r + "_" + c;
+      const inView = vb.intersects(L.latLngBounds([y0, x0], [y0 + sd.sliceH, x0 + sd.sliceW]));
+      if (inView && !shown[key]) {
+        shown[key] = L.imageOverlay(sliceUrl(sd.grid[r][c], lod), [[y0, x0], [y0 + sd.sliceH, x0 + sd.sliceW]]).addTo(group);
+      } else if (!inView && shown[key]) {
+        group.removeLayer(shown[key]); delete shown[key];
+      }
+    }
+  };
+  return group;
 }
 
 async function selectMap(mapId) {
@@ -100,7 +142,7 @@ async function selectMap(mapId) {
   state.currentMapId = mapId;
 
   let w, h;
-  if (def.kind === "tiles") {
+  if (def.kind === "tiles" || def.kind === "slices") {
     [w, h] = def.size;
     await ensureLoaded(mapId);
   } else {
@@ -110,6 +152,7 @@ async function selectMap(mapId) {
   const bounds = [[0, 0], [h, w]];
 
   if (state.overlay) { state.overlay.remove(); state.overlay = null; }
+  state.sliceUpdate = null;
   if (def.kind === "tiles") {
     // 호요랩은 P0(최고해상도) 타일만 제공 → Leaflet이 그걸 축소/확대해 모든 줌 처리
     state.overlay = L.tileLayer(def.tiles, {
@@ -118,15 +161,21 @@ async function selectMap(mapId) {
       minNativeZoom: def.maxZoom, maxNativeZoom: def.maxZoom, // P0만 네이티브
       bounds, noWrap: true, updateWhenZooming: false,
     }).addTo(state.map);
+  } else if (def.kind === "slices") {
+    state.overlay = makeSliceLayer(mapId).addTo(state.map);
   } else {
     state.overlay = L.imageOverlay(def.image, bounds).addTo(state.map);
   }
   state.map.setMaxBounds(L.latLngBounds(bounds).pad(0.5));
-  // 콘텐츠(마커) 영역으로 맞춤 — 타일 맵의 빈 여백 로딩을 줄이고 화면도 딱 맞음
+  // 콘텐츠(마커) 영역으로 맞춤 — 빈 여백 로딩을 줄이고 화면도 딱 맞음
   const list = markersFor(mapId);
   if (list.length) {
-    const lats = list.map((m) => m.lat), lngs = list.map((m) => m.lng);
-    state.map.fitBounds([[Math.min(...lats), Math.min(...lngs)], [Math.max(...lats), Math.max(...lngs)]], { padding: [30, 30] });
+    let minLat = Infinity, maxLat = -Infinity, minLng = Infinity, maxLng = -Infinity;
+    for (const m of list) { // 스프레드 대신 루프(마커 수만 개 대응)
+      if (m.lat < minLat) minLat = m.lat; if (m.lat > maxLat) maxLat = m.lat;
+      if (m.lng < minLng) minLng = m.lng; if (m.lng > maxLng) maxLng = m.lng;
+    }
+    state.map.fitBounds([[minLat, minLng], [maxLat, maxLng]], { padding: [30, 30] });
   } else {
     state.map.fitBounds(bounds);
   }
@@ -180,17 +229,24 @@ function popupHtml(m) {
     h += '<button class="del-btn" onclick="__deleteCustom(\'' + m.id + '\')">삭제</button>';
   return h + "</div>";
 }
-const ICON_LIMIT = 400; // 화면에 이보다 많으면 가벼운 점으로 (밀집 오버뷰 성능)
+const ICON_LIMIT = 400;   // 화면에 이보다 많으면 가벼운 점으로 (밀집 성능)
+const MAX_RENDER = 2000;  // 이보다 많으면 렌더 생략 + "확대" 힌트 (대륙 오버뷰)
 function renderMarkers() {
   if (!state.currentMapId) return;
   state.layer.clearLayers();
   state.leafletById = {};
   const b = state.map.getBounds().pad(0.25); // 뷰포트 컬링: 보이는 것만 그림
   const vis = [];
+  let overflow = false;
   for (const m of markersFor(state.currentMapId)) {
     if (!markerVisible(m)) continue;
-    if (b.contains([m.lat, m.lng])) vis.push(m);
+    if (!b.contains([m.lat, m.lng])) continue;
+    vis.push(m);
+    if (vis.length > MAX_RENDER) { overflow = true; break; }
   }
+  const hint = document.getElementById("zoomHint");
+  if (hint) hint.classList.toggle("hidden", !overflow);
+  if (overflow) return; // 너무 많음: 렌더 생략, 확대 유도
   const useIcons = vis.length <= ICON_LIMIT;
   for (const m of vis) {
     const done = !!state.done[m.id];

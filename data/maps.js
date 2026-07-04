@@ -4,6 +4,7 @@
 //
 // kind 생략 = 이미지 맵. kind:"tiles" = 타일 맵(호요랩 CDN 링크, 저장 불필요).
 window.MAPS_LIST = [
+  { id: "teyvat", name: "티바트 대륙", kind: "slices", size: [22528, 20480] },
   { id: "enkanomiya", name: "연하궁", image: "maps/enkanomiya.jpeg", size: [4096, 4096] },
   { id: "chasm_underground", name: "층암거연·지하 광갱", image: "maps/chasm_underground.jpeg", size: [4096, 4096] },
   { id: "frostmoon", name: "서리달", kind: "tiles",

@@ -73,8 +73,12 @@ const PALETTE = [
       console.log(`  이미지 저장 → ${file} (${(buf.length / 1e6).toFixed(1)}MB)`);
       mapEntry = `{ id: "${localId}", name: "${name}", image: "${file}", size: [${w}, ${h}] }`;
     } else {
-      imgNote = `⚠ 슬라이스 ${rows}x${cols} 대형 맵 — 타일 방식 별도 처리 필요`;
-      mapEntry = `/* ${imgNote} */`;
+      // 다중 슬라이스: 조각을 호요랩 CDN에서 핫링크, 보이는 것만 로드(앱에서 컬링)
+      const grid = d.slices.map((row) => row.map((s) => s.url));
+      fs.writeFileSync(path.join(ROOT, `data/slices/${localId}.js`),
+        `registerSlices("${localId}", ${JSON.stringify({ rows, cols, sliceW: w / cols, sliceH: h / rows, grid })});\n`);
+      console.log(`  슬라이스 ${rows}x${cols} → data/slices/${localId}.js (핫링크)`);
+      mapEntry = `{ id: "${localId}", name: "${name}", kind: "slices", size: [${w}, ${h}] }`;
     }
   } else {
     // ── 타일 맵 (호요랩 CDN 핫링크) ──
