@@ -75,6 +75,10 @@ function catsFor(mapId) { return state.cats[mapId] || {}; }
 function catDef(mapId, id) { return catsFor(mapId)[id] || { name: "카테고리 " + id, group: "기타", color: "#b98ce0" }; }
 function isCustom(id) { return id[0] === "c"; }
 
+// 리젠(재생성) 자원 그룹: 캐도 다시 생기므로 완료 수집 대상이 아님 → 완료 카운트 제외, 표시만.
+const RENEWABLE_GROUPS = new Set(["광물", "적", "낚시", "동물", "지역 특산물", "배낭 / 소재"]);
+function isRenewable(mapId, cat) { return RENEWABLE_GROUPS.has(catDef(mapId, cat).group); }
+
 // ===== 지도 =====
 // 픽셀 기준 좌표계: 좌상단 원점, y 아래로 증가 (이미지·타일 맵 공통).
 // 마커 [lat, lng] = [픽셀y, 픽셀x] = [origin_y + 게임y, origin_x + 게임x]
@@ -135,7 +139,8 @@ async function selectMap(mapId) {
 // ===== 마커 =====
 function markerVisible(m) {
   if (hiddenSet(state.currentMapId).has(m.cat)) return false;
-  if (state.hideCompleted && state.done[m.id]) return false;
+  // 리젠 자원은 완료 개념이 없으므로 "먹은 것 숨기기"의 영향을 받지 않음
+  if (state.hideCompleted && state.done[m.id] && !isRenewable(state.currentMapId, m.cat)) return false;
   return true;
 }
 function markerStyle(m) {
@@ -151,9 +156,13 @@ function popupHtml(m) {
   let h = '<div class="popup-title">' + esc(title) + "</div>" +
     '<div class="popup-cat" style="color:' + c.color + '">● ' + esc(c.name) + "</div>";
   if (m.desc) h += '<div class="popup-desc">' + esc(m.desc) + "</div>";
-  h += '<div class="popup-actions">' +
-    '<button class="done-btn ' + (done ? "is-done" : "") + '" onclick="__toggleDone(\'' + m.id + '\')">' +
-    (done ? "↩ 되돌리기" : "✓ 먹었음") + "</button>";
+  h += '<div class="popup-actions">';
+  if (isRenewable(state.currentMapId, m.cat)) {
+    h += '<span class="renew-note">🔄 재생성 자원 (수집 집계 제외)</span>';
+  } else {
+    h += '<button class="done-btn ' + (done ? "is-done" : "") + '" onclick="__toggleDone(\'' + m.id + '\')">' +
+      (done ? "↩ 되돌리기" : "✓ 먹었음") + "</button>";
+  }
   if (state.admin && isCustom(m.id))
     h += '<button class="del-btn" onclick="__deleteCustom(\'' + m.id + '\')">삭제</button>';
   return h + "</div>";
@@ -227,7 +236,7 @@ function renderFilters() {
     const anyOn = items.some((i) => !hidden.has(i.id));
 
     const gEl = document.createElement("div");
-    gEl.className = "grp";
+    gEl.className = "grp" + (RENEWABLE_GROUPS.has(gName) ? " renew" : "");
 
     const head = document.createElement("div");
     head.className = "grp-head";
@@ -285,9 +294,11 @@ function setAllFilters(visible) {
 // ===== 통계 =====
 function updateStats() {
   const hidden = hiddenSet(state.currentMapId);
-  const list = markersFor(state.currentMapId).filter((m) => !hidden.has(m.cat));
+  // 완료 집계는 1회성 수집(상자·눈동자 등)만. 리젠 자원(광물·적 등)은 제외.
+  const list = markersFor(state.currentMapId)
+    .filter((m) => !hidden.has(m.cat) && !isRenewable(state.currentMapId, m.cat));
   const done = list.filter((m) => state.done[m.id]).length;
-  document.getElementById("stats").textContent = "먹음 " + done + " / " + list.length;
+  document.getElementById("stats").textContent = "수집 " + done + " / " + list.length;
 }
 
 // ===== 관리자 폼 카테고리 =====
