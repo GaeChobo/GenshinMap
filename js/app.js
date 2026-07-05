@@ -67,7 +67,10 @@ window.registerFloors = (mapId, obj) => { state.floors[mapId] = obj; };
 function loadScript(src) {
   return new Promise((resolve) => {
     const s = document.createElement("script");
-    s.src = src; s.onload = resolve; s.onerror = resolve; document.body.appendChild(s);
+    // 캐시버스팅: 배포 버전(window.__ASSET_V)을 쿼리로 붙여 동적 로드도 항상 최신 파일
+    const v = window.__ASSET_V || "dev";
+    s.src = src + (src.includes("?") ? "&" : "?") + "v=" + v;
+    s.onload = resolve; s.onerror = resolve; document.body.appendChild(s);
   });
 }
 // 나라별 분리 로드 지도(teyvat): 해당 지역 파일만 지연 로드 (mapAreas는 아래에 정의)

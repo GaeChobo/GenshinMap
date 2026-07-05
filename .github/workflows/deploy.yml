@@ -30,6 +30,13 @@ jobs:
           for f in data/markers/*.js; do node --check "$f"; done
           node --check js/app.js
 
+      - name: 캐시버스팅 (에셋 버전 = 커밋 SHA)
+        run: |
+          VER="${GITHUB_SHA::8}"
+          sed -i "s/__ASSET_V__/${VER}/g" index.html
+          echo "asset version = ${VER}"
+          grep -o 'v=[0-9a-f]\{8\}' index.html | head -1
+
       - name: Pages 설정
         uses: actions/configure-pages@v5
 
