@@ -721,30 +721,45 @@ label { cursor: pointer; }
 
 .mk-badge {
   position: relative;
-  width: 28px; height: 28px;
+  width: 30px; height: 30px;
   display: grid;
   place-items: center;
   border-radius: 50% 50% 50% 0;            /* teardrop pin */
   transform: rotate(-45deg);
-  background: var(--panel-solid);
-  border: 2px solid var(--metal);            /* fallback; JS overrides border-color */
-  box-shadow: var(--marker-shadow), 0 0 0 1.5px var(--panel-solid);  /* surface halo lifts pin off any map bg */
+  background: #1a2740;                        /* 어두운 배경 → 아이콘이 확 살아남(원신맵스 스타일) */
+  border: 3px solid var(--metal);            /* fallback; JS가 카테고리 색으로 border-color 덮음 */
+  box-shadow:
+    0 3px 7px rgba(0,0,0,.5),                 /* 지도 위로 확실히 떠 보이게 */
+    0 0 0 1.5px rgba(0,0,0,.4);               /* 밝은 배경에서도 링이 또렷 */
   transition: transform .1s var(--ease), filter .1s var(--ease);
 }
 .mk-badge > * { transform: rotate(45deg); }
 .mk-badge img {
-  width: 18px; height: 18px; object-fit: contain; display: block;
-  filter: drop-shadow(0 0 1px var(--panel-solid));  /* keeps the glyph readable over the pin */
+  width: 20px; height: 20px; object-fit: contain; display: block;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,.7)) brightness(1.08);  /* 글리프 또렷하게 */
 }
 
 .mk-dot {
-  width: 12px; height: 12px;
+  width: 13px; height: 13px;
   border-radius: 50%;
   background: currentColor;
+  box-shadow: 0 0 0 2px rgba(0,0,0,.35);
+}
+
+/* 지하 표식 — 굵은 노란 ▼, 배지 밖 하단 팁에 고정, 검은 외곽선으로 어떤 지도 위에서도 또렷 */
+.mk-ug {
+  position: absolute;
+  left: 50%; bottom: -1px;
+  transform: translateX(-50%);
+  font-size: 14px; line-height: 1;
+  color: #FFC93C;                            /* 원신 골드 */
+  text-shadow: 0 0 2px #000, 0 0 3px #000, 0 1px 2px rgba(0,0,0,.95);
+  pointer-events: none;
+  z-index: 3;
 }
 
 .mk:hover .mk-badge,
-.mk-badge:hover { transform: rotate(-45deg) scale(1.12); z-index: 500; }
+.mk-badge:hover { transform: rotate(-45deg) scale(1.15); z-index: 500; }
 
 /* Completed markers — faded but still legible; also desaturated for shape-clarity */
 .mk.done .mk-badge,
@@ -1043,11 +1058,11 @@ label { cursor: pointer; }
      L.divIcon({ className:'mk', html:'<div class="mk-badge" …>…</div>',
                  iconSize:[30,38], iconAnchor:[15,38] })   // [w/2, tipY]
    The badge below is tuned so its point sits exactly at bottom-centre (15,38). */
-.mk.pin-precise { width: 30px; height: 38px; }
+.mk.pin-precise { width: 32px; height: 40px; position: relative; }
 .mk.pin-precise .mk-badge {
-  position: absolute; left: 50%; top: 0;
-  width: 26px; height: 26px;
-  margin-left: -13px;                   /* centre horizontally → tip at x=15 */
+  position: absolute; left: 50%; top: 1px;
+  width: 30px; height: 30px;
+  margin-left: -15px;                   /* centre horizontally → tip at x=16 */
 }
 /* tip lands at y≈38: 26px badge, rotated corner extends ~11px below → ~37–38px */
 

@@ -398,12 +398,12 @@ function leafIcon(cat, underground) {
     const inner = c.icon
       ? '<img src="' + c.icon + '" alt="" loading="lazy">'
       : '<span class="mk-dot" style="background:' + c.color + '"></span>';
-    // 지하 마커는 물방울 배지에 지하 표식(🔻)을 덧붙여 한눈에 구분
-    const ugMark = underground ? '<span class="mk-ug" title="지하">▼</span>' : "";
+    // 지하 마커: 노란 ▼(원신맵스 스타일)을 배지 '밖' 형제로 배치 → 배지 회전 영향 없이 하단 팁에 고정
+    const ugMark = underground ? '<span class="mk-ug" title="지하" aria-label="지하">▼</span>' : "";
     iconCache[key] = L.divIcon({
       className: "mk pin-precise" + (underground ? " is-under" : ""), // 물방울 끝이 정확한 좌표를 가리킴
-      html: '<div class="mk-badge" style="border-color:' + c.color + '">' + inner + ugMark + "</div>",
-      iconSize: [30, 38], iconAnchor: [15, 38], popupAnchor: [0, -34],
+      html: '<div class="mk-badge" style="border-color:' + c.color + '">' + inner + "</div>" + ugMark,
+      iconSize: [32, 40], iconAnchor: [16, 38], popupAnchor: [0, -36],
     });
   }
   return iconCache[key];
