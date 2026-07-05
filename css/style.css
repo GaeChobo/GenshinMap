@@ -156,6 +156,8 @@
 * { box-sizing: border-box; }
 
 [hidden] { display: none !important; }
+/* JS는 class="hidden" 로 요소를 숨김(로그인폼·관리자패널·지역선택 등). 반드시 필요. */
+.hidden { display: none !important; }
 
 html, body {
   margin: 0;
@@ -254,7 +256,11 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 
 input[type="text"],
 input[type="email"],
+input[type="password"],
 input[type="search"],
+input[type="tel"],
+input[type="url"],
+input[type="number"],
 input:not([type]),
 textarea,
 select {
