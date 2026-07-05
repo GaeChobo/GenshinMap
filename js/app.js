@@ -461,6 +461,7 @@ function popupHtml(m) {
 }
 const CLUSTER_CELL = 46;   // 클러스터 격자 크기(화면 픽셀). 이 안의 같은 카테고리는 묶임
 const CLUSTER_CAP = 15000; // 화면에 이보다 많으면 렌더 생략 + "확대" 힌트 (안전장치)
+const NO_CLUSTER_ZOOM = 4; // 이 줌 이상이면 클러스터링 끄고 전부 개별 마커(확대 시 위치 고정). 실측으로 조정.
 
 function addIndividual(m) {
   const custom = isCustom(m.id);
@@ -507,13 +508,19 @@ function renderMarkers() {
   if (count > CLUSTER_CAP) { if (hint) hint.classList.remove("hidden"); return; }
   if (hint) hint.classList.add("hidden");
 
+  // 충분히 확대(zoom ≥ NO_CLUSTER_ZOOM)하면 클러스터링을 끄고 전부 개별 마커로 표시
+  //  → 확대 상태에선 마커가 실제 좌표에 딱 고정되어 확대/축소해도 위치가 안 움직임.
+  //    (팬 이동 시 깜빡임 없도록 카운트가 아니라 줌 기준으로 판단)
+  const noCluster = zoom >= NO_CLUSTER_ZOOM;
+
   for (const cell of cells.values()) {
     const total = cell.items.length;
     const collectible = !isRenewable(state.currentMapId, cell.cat);
-    if (total === 1) {
-      const m = cell.items[0];
-      if (state.hideCompleted && collectible && state.done[m.id]) continue; // 완료 개별은 숨김
-      addIndividual(m);
+    if (total === 1 || noCluster) {
+      for (const m of cell.items) {
+        if (state.hideCompleted && collectible && state.done[m.id]) continue; // 완료 개별은 숨김
+        addIndividual(m);
+      }
       continue;
     }
     // 완료 클러스터는 "먹은 것 숨기기" 시 숨김 (리젠 자원은 완료 개념 없음)
