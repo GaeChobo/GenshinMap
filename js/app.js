@@ -459,9 +459,9 @@ function popupHtml(m) {
   if (!isCustom(m.id) && window.Reviews) h += Reviews.sectionHtml(state.currentMapId, m.id);
   return h;
 }
-const CLUSTER_CELL = 46;   // 클러스터 격자 크기(화면 픽셀). 이 안의 같은 카테고리는 묶임
-const CLUSTER_CAP = 15000; // 화면에 이보다 많으면 렌더 생략 + "확대" 힌트 (안전장치)
-const NO_CLUSTER_ZOOM = 4; // 이 줌 이상이면 클러스터링 끄고 전부 개별 마커(확대 시 위치 고정). 실측으로 조정.
+const CLUSTER_CELL = 46;   // 격자 크기(화면 픽셀) — 뷰포트 카운트 계산용으로만 유지
+const CLUSTER_CAP = 3000;  // 뷰포트에 이보다 많으면 렌더 생략 + "확대" 힌트 (개별 마커 성능 상한)
+const NO_CLUSTER_ZOOM = -Infinity; // 클러스터링 비활성 — 항상 개별 마커로 실제 좌표에 고정(줌 변화에도 안 움직임)
 
 function addIndividual(m) {
   const custom = isCustom(m.id);
