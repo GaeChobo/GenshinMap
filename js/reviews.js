@@ -150,9 +150,9 @@ window.Reviews = (function () {
       (r.image_url ? '<a class="review-photo" href="' + esc(r.image_url) + '" target="_blank" rel="noopener">' +
         '<img src="' + esc(r.image_url) + '" alt="첨부 사진" loading="lazy"></a>' : "") +
       '<div class="review-actions">' +
-      '<button class="rv-up' + (my === 1 ? " on" : "") + '" data-id="' + r.id + '" title="유용해요">👍 <b>' + up + "</b></button>" +
-      '<button class="rv-down' + (my === -1 ? " on" : "") + '" data-id="' + r.id + '" title="별로예요">👎 <b>' + down + "</b></button>" +
-      (mine ? "" : '<button class="rv-report" data-id="' + r.id + '" title="신고">🚩</button>') +
+      '<button class="rv-up' + (my === 1 ? " on" : "") + '" data-id="' + r.id + '" title="유용해요"><b>' + up + "</b></button>" +
+      '<button class="rv-down' + (my === -1 ? " on" : "") + '" data-id="' + r.id + '" title="별로예요"><b>' + down + "</b></button>" +
+      (mine ? "" : '<button class="rv-report" data-id="' + r.id + '" title="신고"></button>') +
       "</div>" +
       "</div></div>"
     );
@@ -168,7 +168,7 @@ window.Reviews = (function () {
     return (
       '<div class="review-form">' +
       '<textarea class="review-input" rows="1" maxlength="500" placeholder="이 지점에 대한 팁·리뷰 남기기…"></textarea>' +
-      '<label class="review-photo-btn" title="사진 첨부">📷' +
+      '<label class="review-photo-btn" title="사진 첨부">' +
       '<input class="review-file" type="file" accept="image/*" hidden></label>' +
       '<button class="review-send" type="button">등록</button>' +
       "</div>" +

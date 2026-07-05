@@ -813,4 +813,7 @@ window.applyDone = (obj) => {
   updateStats();
 };
 
+// 디버그/캡처용 훅 (프로덕션에 영향 없음)
+window.__state = state;
+
 boot();
